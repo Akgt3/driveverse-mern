@@ -16,7 +16,7 @@ export default function VehicleDetails() {
   useEffect(() => {
     const fetchListing = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/listings/${id}`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/listings/${id}`);
         const data = await res.json();
         setListing(data);
       } catch (err) {
@@ -45,7 +45,7 @@ export default function VehicleDetails() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/users/wishlist/${listing._id}`,
+        `${import.meta.env.VITE_API_URL}/api/users/wishlist/${listing._id}`,
         {
           method: "POST",
           headers: {
@@ -99,8 +99,10 @@ export default function VehicleDetails() {
           <div className="flex-1 space-y-6">
             {/* IMAGE */}
             <div className="relative rounded-xl overflow-hidden bg-neutral-100 dark:bg-[#1a1a1a]">
+
+
               <img
-                src={`http://localhost:5000${listing.images[activeImage]}`}
+                src={`${import.meta.env.VITE_API_URL}${listing.images[activeImage]}`}
                 alt={listing.title}
                 className="w-full h-[260px] sm:h-[380px] lg:h-[420px] object-cover"
               />

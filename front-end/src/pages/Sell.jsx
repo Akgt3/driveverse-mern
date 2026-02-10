@@ -75,7 +75,7 @@ export default function Sell() {
     });
 
     try {
-      const res = await fetch("http://localhost:5000/api/listings", {
+      const res = await fetch("${import.meta.env.VITE_API_URL}/api/listings", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -278,7 +278,7 @@ export default function Sell() {
                       className="relative group rounded-md overflow-hidden border border-gray-200 dark:border-[#333333]"
                     >
                       <img
-                        src={img instanceof File ? URL.createObjectURL(img) : `http://localhost:5000${img}`}
+                        src={img instanceof File ? URL.createObjectURL(img) : `${import.meta.env.VITE_API_URL}${img}`}
                         alt="preview"
                         className="h-[100px] w-full object-cover"
                       />

@@ -23,7 +23,7 @@ export default function AdminDashboard() {
     try {
       // Fetch user stats
       const userRes = await fetch(
-        "http://localhost:5000/api/users/admin/stats",
+        "${import.meta.env.VITE_API_URL}/api/users/admin/stats",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -34,7 +34,7 @@ export default function AdminDashboard() {
 
       // Fetch listing stats
       const listingRes = await fetch(
-        "http://localhost:5000/api/listings/admin/stats",
+        "${import.meta.env.VITE_API_URL}/api/listings/admin/stats",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -44,7 +44,7 @@ export default function AdminDashboard() {
       const listingData = await listingRes.json();
 
       // Fetch all listings for recent display
-      const allListingsRes = await fetch("http://localhost:5000/api/listings");
+      const allListingsRes = await fetch("${import.meta.env.VITE_API_URL}/api/listings");
       const allListings = await allListingsRes.json();
 
       // Get 5 most recent listings

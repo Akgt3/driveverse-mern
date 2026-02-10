@@ -16,7 +16,7 @@ export default function MyAds() {
   useEffect(() => {
     const fetchMyAds = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/listings/my-ads", {
+        const res = await fetch("${import.meta.env.VITE_API_URL}/api/listings/my-ads", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -43,7 +43,7 @@ export default function MyAds() {
     if (!confirm("Delete this ad permanently?")) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/listings/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/listings/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -96,7 +96,7 @@ export default function MyAds() {
               {/* IMAGE */}
               <div className="relative">
                 <img
-                  src={`http://localhost:5000${car.images[0]}`}
+                  src={`${import.meta.env.VITE_API_URL}${car.images[0]}`}
                   className="w-full h-[190px] object-cover"
                   alt={car.title}
                 />

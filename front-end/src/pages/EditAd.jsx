@@ -38,7 +38,7 @@ export default function EditAd() {
   useEffect(() => {
     const fetchAd = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/listings/${id}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/listings/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -113,7 +113,7 @@ export default function EditAd() {
         formData.append("images", img);
       });
 
-      const res = await fetch(`http://localhost:5000/api/listings/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/listings/${id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -279,7 +279,7 @@ export default function EditAd() {
                       className="relative group rounded-md overflow-hidden border border-gray-200 dark:border-[#333333]"
                     >
                       <img
-                        src={`http://localhost:5000${img}`}
+                        src={`${import.meta.env.VITE_API_URL}${img}`}
                         className="h-[100px] w-full object-cover"
                         alt="Existing"
                       />
@@ -370,8 +370,8 @@ function SellerCard({ icon, title, desc, active, onClick }) {
     <button
       onClick={onClick}
       className={`flex items-start gap-4 p-5 rounded-lg border text-left ${active
-          ? "border-black dark:border-white"
-          : "border-gray-300 dark:border-[#333333]"
+        ? "border-black dark:border-white"
+        : "border-gray-300 dark:border-[#333333]"
         } bg-white dark:bg-[#0F0F0F]`}
     >
       <div className="text-black dark:text-white">{icon}</div>

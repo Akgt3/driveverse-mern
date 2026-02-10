@@ -12,7 +12,7 @@ export default function ChatInbox() {
 
   /* ================= FETCH CHATS ================= */
   const fetchChats = async () => {
-    const res = await fetch("http://localhost:5000/api/chats/my-chats", {
+    const res = await fetch("${import.meta.env.VITE_API_URL}/api/chats/my-chats", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -52,7 +52,7 @@ export default function ChatInbox() {
     if (!confirm("Delete this conversation?")) return;
 
     try {
-      await fetch(`http://localhost:5000/api/chats/${chatId}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/chats/${chatId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -73,7 +73,7 @@ export default function ChatInbox() {
     try {
       await Promise.all(
         selected.map((id) =>
-          fetch(`http://localhost:5000/api/chats/${id}`, {
+          fetch(`${import.meta.env.VITE_API_URL}/api/chats/${id}`, {
             method: "DELETE",
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

@@ -22,7 +22,7 @@ export default function CarCard({ car }) {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/users/wishlist/${car._id}`,
+        `${import.meta.env.VITE_API_URL}/api/users/wishlist/${car._id}`,
         {
           method: "POST",
           headers: {

@@ -12,7 +12,7 @@ export default function ImageGallery({ images = [], user, isOwner }) {
       <div className="relative rounded-lg overflow-hidden bg-black">
 
         <img
-          src={`http://localhost:5000${images[active]}`}
+          src={`${import.meta.env.VITE_API_URL}${images[active]}`}
           className="w-full h-[460px] object-cover"
           alt="Vehicle"
         />

@@ -13,7 +13,7 @@ export default function AdminListings() {
 
   const fetchListings = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/listings", {
+      const res = await fetch("${import.meta.env.VITE_API_URL}/api/listings", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -32,7 +32,7 @@ export default function AdminListings() {
   const toggleFeatured = async (id) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/listings/admin/feature/${id}`,
+        `${import.meta.env.VITE_API_URL}/api/listings/admin/feature/${id}`,
         {
           method: "PATCH",
           headers: {
@@ -62,7 +62,7 @@ export default function AdminListings() {
   const toggleVerified = async (id) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/listings/admin/verify/${id}`,
+        `${import.meta.env.VITE_API_URL}/api/listings/admin/verify/${id}`,
         {
           method: "PATCH",
           headers: {
@@ -93,7 +93,7 @@ export default function AdminListings() {
     if (!window.confirm("Delete this listing permanently?")) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/listings/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/listings/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -202,8 +202,8 @@ export default function AdminListings() {
                           <button
                             onClick={() => toggleFeatured(car._id)}
                             className={`p-2 rounded-md transition ${car.featured
-                                ? "bg-yellow-100 text-yellow-600"
-                                : "text-yellow-500 hover:bg-yellow-50"
+                              ? "bg-yellow-100 text-yellow-600"
+                              : "text-yellow-500 hover:bg-yellow-50"
                               } dark:hover:bg-[#1A1A1A]`}
                             title={
                               car.featured ? "Remove featured" : "Make featured"
@@ -215,8 +215,8 @@ export default function AdminListings() {
                           <button
                             onClick={() => toggleVerified(car._id)}
                             className={`p-2 rounded-md transition ${car.verified
-                                ? "bg-blue-100 text-blue-600"
-                                : "text-blue-500 hover:bg-blue-50"
+                              ? "bg-blue-100 text-blue-600"
+                              : "text-blue-500 hover:bg-blue-50"
                               } dark:hover:bg-[#1A1A1A]`}
                             title={car.verified ? "Unverify" : "Verify"}
                           >
@@ -289,8 +289,8 @@ export default function AdminListings() {
                     <button
                       onClick={() => toggleFeatured(car._id)}
                       className={`p-2 rounded-md ${car.featured
-                          ? "bg-yellow-100 text-yellow-600"
-                          : "text-yellow-500"
+                        ? "bg-yellow-100 text-yellow-600"
+                        : "text-yellow-500"
                         }`}
                     >
                       <FiStar />
@@ -299,8 +299,8 @@ export default function AdminListings() {
                     <button
                       onClick={() => toggleVerified(car._id)}
                       className={`p-2 rounded-md ${car.verified
-                          ? "bg-blue-100 text-blue-600"
-                          : "text-blue-500"
+                        ? "bg-blue-100 text-blue-600"
+                        : "text-blue-500"
                         }`}
                     >
                       <FiCheckCircle />

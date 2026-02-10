@@ -10,7 +10,7 @@ export default function AdminUsers() {
   const toggleStatus = async (id) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/users/admin/status/${id}`,
+        `${import.meta.env.VITE_API_URL}/api/users/admin/status/${id}`,
         {
           method: "PATCH",
           headers: {
@@ -42,7 +42,7 @@ export default function AdminUsers() {
     const fetchUsers = async () => {
       try {
         const res = await fetch(
-          "http://localhost:5000/api/users/admin/all",
+          "${import.meta.env.VITE_API_URL}/api/users/admin/all",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
