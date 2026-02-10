@@ -57,7 +57,7 @@ export default function CarCard({ car }) {
       {/* IMAGE */}
       <div className="relative">
         <img
-          src={`http://localhost:5000${car.images[0]}`}
+          src={`${import.meta.env.VITE_API_URL}${car.images[0]}`}
           alt={car.title}
           className="w-full h-[190px] object-cover"
         />

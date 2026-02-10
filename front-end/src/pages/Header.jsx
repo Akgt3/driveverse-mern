@@ -16,7 +16,7 @@ import ProfileMenu from "../components/ProfileMenu";
 import { useNavigate } from "react-router-dom";
 
 
-const socket = io("http://localhost:5000", {
+const socket = io(import.meta.env.VITE_SOCKET_URL, {
   transports: ["websocket"],
 });
 
@@ -42,7 +42,7 @@ export default function Header() {
 
     try {
       const res = await fetch(
-        "${import.meta.env.VITE_API_URL}/api/chats/unread-count",
+        `${import.meta.env.VITE_API_URL} / api / chats / unread - count`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -122,7 +122,7 @@ export default function Header() {
                       ? "text-black dark:text-white font-medium border-b-2 border-black dark:border-white pb-1"
                       : "text-gray-800 dark:text-gray-300 hover:text-black dark:hover:text-white"
                     }
-      `
+        `
                   }
                 >
                   {item.label}
@@ -178,7 +178,7 @@ export default function Header() {
               <FiSun
                 size={18}
                 className={`
-      transition-opacity duration-200
+      transition - opacity duration - 200
       ${theme === "dark" ? "opacity-30 text-gray-400" : "opacity-100 text-black"}
     `}
               />
@@ -195,13 +195,13 @@ export default function Header() {
               >
                 <div
                   className={`
-        absolute top-[2px]
-        w-4 h-4 rounded-full
-        bg-white dark:bg-black
-        shadow
-        transition-transform duration-300 ease-in-out
+        absolute top - [2px]
+    w - 4 h - 4 rounded - full
+    bg - white dark: bg - black
+    shadow
+    transition - transform duration - 300 ease -in -out
         ${theme === "dark" ? "translate-x-5" : "translate-x-1"}
-      `}
+    `}
                 />
               </div>
 
@@ -209,7 +209,7 @@ export default function Header() {
               <FiMoon
                 size={18}
                 className={`
-      transition-opacity duration-200
+    transition - opacity duration - 200
       ${theme === "dark" ? "opacity-100 text-white" : "opacity-30 text-gray-400"}
     `}
               />
@@ -263,8 +263,8 @@ export default function Header() {
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
                   `
-      relative py-2 pl-3 transition
-      border-b border-gray-100 dark:border-[#333333]
+      relative py - 2 pl - 3 transition
+    border - b border - gray - 100 dark: border - [#333333]
       ${isActive
                     ? "text-black dark:text-white font-medium"
                     : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
@@ -316,9 +316,9 @@ export default function Header() {
                 <FiSun
                   size={16}
                   className={`
-        transition-opacity duration-200
+    transition - opacity duration - 200
         ${theme === "dark" ? "opacity-30 text-gray-400" : "opacity-100 text-black"}
-      `}
+    `}
                 />
 
                 <div
@@ -332,22 +332,22 @@ export default function Header() {
                 >
                   <div
                     className={`
-          absolute top-[2px]
-          w-4 h-4 rounded-full
-          bg-white dark:bg-black
-          shadow
-          transition-transform duration-300 ease-in-out
+          absolute top - [2px]
+    w - 4 h - 4 rounded - full
+    bg - white dark: bg - black
+    shadow
+    transition - transform duration - 300 ease -in -out
           ${theme === "dark" ? "translate-x-5" : "translate-x-1"}
-        `}
+    `}
                   />
                 </div>
 
                 <FiMoon
                   size={16}
                   className={`
-        transition-opacity duration-200
+    transition - opacity duration - 200
         ${theme === "dark" ? "opacity-100 text-white" : "opacity-30 text-gray-400"}
-      `}
+    `}
                 />
               </div>
             </div>

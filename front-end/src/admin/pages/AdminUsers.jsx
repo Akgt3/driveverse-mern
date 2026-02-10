@@ -42,7 +42,7 @@ export default function AdminUsers() {
     const fetchUsers = async () => {
       try {
         const res = await fetch(
-          "${import.meta.env.VITE_API_URL}/api/users/admin/all",
+          `${import.meta.env.VITE_API_URL} / api / users / admin / all`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -111,12 +111,12 @@ export default function AdminUsers() {
 
                   <td>
                     <span
-                      className={`px-3 py-1 text-xs rounded-full
+                      className={`px - 3 py - 1 text - xs rounded - full
                         ${user.status === "active"
                           ? "bg-green-100 text-green-700"
                           : "bg-red-100 text-red-700"
                         }
-                      `}
+          `}
                     >
                       {/* ✅ CAPITALIZE FOR DISPLAY */}
                       {user.status === "active" ? "Active" : "Blocked"}
@@ -126,12 +126,12 @@ export default function AdminUsers() {
                   <td className="p-4 text-right">
                     <button
                       onClick={() => toggleStatus(user._id)}
-                      className={`inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition
+                      className={`inline - flex items - center gap - 2 px - 3 py - 2 rounded - md text - sm font - medium transition
                         ${user.status === "active"
                           ? "text-red-600 hover:bg-red-50"
                           : "text-green-600 hover:bg-green-50"
                         }
-                      `}
+          `}
                     >
                       {user.status === "active" ? (
                         <>
@@ -169,12 +169,12 @@ export default function AdminUsers() {
 
               <div className="mt-2">
                 <span
-                  className={`px-3 py-1 text-xs rounded-full
+                  className={`px - 3 py - 1 text - xs rounded - full
                     ${user.status === "active"
                       ? "bg-green-100 text-green-700"
                       : "bg-red-100 text-red-700"
                     }
-                  `}
+          `}
                 >
                   {user.status === "active" ? "Active" : "Blocked"}
                 </span>
@@ -183,12 +183,12 @@ export default function AdminUsers() {
               <div className="mt-4 flex justify-end">
                 <button
                   onClick={() => toggleStatus(user._id)}
-                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
+                  className={`inline - flex items - center gap - 2 px - 3 py - 2 rounded - md text - sm font - medium
                     ${user.status === "active"
                       ? "text-red-600 hover:bg-red-50"
                       : "text-green-600 hover:bg-green-50"
                     }
-                  `}
+          `}
                 >
                   {user.status === "active" ? (
                     <>

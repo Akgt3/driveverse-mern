@@ -52,7 +52,7 @@ export default function Chat() {
   /* ================= CREATE/GET CHAT ================= */
   useEffect(() => {
     const createChat = async () => {
-      const res = await fetch("http://localhost:5000/api/chats/create", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL} / api / chats / create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -74,7 +74,7 @@ export default function Chat() {
 
     const loadMessages = async () => {
       const res = await fetch(
-        `http://localhost:5000/api/messages/${chatId}`,
+        `${import.meta.env.VITE_API_URL}/api/messages/${chatId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -101,7 +101,7 @@ export default function Chat() {
       });
 
       // Mark as read immediately
-      await fetch(`http://localhost:5000/api/chats/read/${chatId}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/chats/read/${chatId}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -133,7 +133,7 @@ export default function Chat() {
       ]);
 
       // ✅ MARK AS READ INSTANTLY
-      fetch(`http://localhost:5000/api/chats/read/${chatId}`, {
+      fetch(`${import.meta.env.VITE_API_URL}/api/chats/read/${chatId}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -207,7 +207,7 @@ export default function Chat() {
     setMessages((prev) => [...prev, temp]);
     setMessage("");
 
-    const res = await fetch("http://localhost:5000/api/messages", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL} / api / messages`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -261,7 +261,7 @@ export default function Chat() {
     formData.append("chatId", chatId);
     formData.append("type", "image");
 
-    const tempId = `temp-${Date.now()}`;
+    const tempId = `temp - ${Date.now()}`;
     const temp = {
       _id: tempId,
       from: "user",
@@ -279,7 +279,7 @@ export default function Chat() {
     setPreviewImage(null);
 
     try {
-      const res = await fetch("http://localhost:5000/api/messages/upload", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}api / messages / upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -321,7 +321,7 @@ export default function Chat() {
   useEffect(() => {
     const fetchSeller = async () => {
       const res = await fetch(
-        `http://localhost:5000/api/users/profile/${sellerId}`
+        `${import.meta.env.VITE_API_URL}/api/users/profile/${sellerId}`
       );
       setSeller(await res.json());
     };

@@ -13,7 +13,7 @@ export default function AdminListings() {
 
   const fetchListings = async () => {
     try {
-      const res = await fetch("${import.meta.env.VITE_API_URL}/api/listings", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL} / api / listings`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -32,7 +32,7 @@ export default function AdminListings() {
   const toggleFeatured = async (id) => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/listings/admin/feature/${id}`,
+        `${import.meta.env.VITE_API_URL} / api / listings / admin / feature / ${id}`,
         {
           method: "PATCH",
           headers: {
@@ -62,7 +62,7 @@ export default function AdminListings() {
   const toggleVerified = async (id) => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/listings/admin/verify/${id}`,
+        `${import.meta.env.VITE_API_URL} / api / listings / admin / verify / ${id}`,
         {
           method: "PATCH",
           headers: {
@@ -93,7 +93,7 @@ export default function AdminListings() {
     if (!window.confirm("Delete this listing permanently?")) return;
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/listings/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL} / api / listings / ${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -161,22 +161,22 @@ export default function AdminListings() {
                           </p>
                           <p className="text-xs text-gray-500">{car.price}</p>
                         </div>
-                      </td>
+                      </td >
 
                       {/* SELLER */}
-                      <td>
+                      <td  >
                         <p className="font-medium text-black dark:text-white">
                           {car.seller?.name || "Unknown"}
                         </p>
-                      </td>
+                      </td >
 
                       {/* LOCATION */}
-                      <td className="text-gray-600 dark:text-gray-400">
+                      < td className="text-gray-600 dark:text-gray-400" >
                         {car.location}
-                      </td>
+                      </ td>
 
                       {/* STATUS */}
-                      <td>
+                      <td td >
                         <div className="flex flex-col gap-1">
                           {car.verified && (
                             <span className="inline-flex items-center gap-1 text-xs px-2 py-[2px] rounded bg-blue-500 text-white w-fit">
@@ -194,10 +194,10 @@ export default function AdminListings() {
                             <span className="text-gray-400 text-xs">—</span>
                           )}
                         </div>
-                      </td>
+                      </td >
 
                       {/* ACTIONS */}
-                      <td className="p-4">
+                      <td td className="p-4" >
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => toggleFeatured(car._id)}
@@ -231,94 +231,97 @@ export default function AdminListings() {
                             <FiTrash2 />
                           </button>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </td >
+                    </tr >
+                  ))
+                  }
+                </tbody >
+              </table >
+            </div >
 
             {/* ================= MOBILE CARDS ================= */}
-            <div className="md:hidden space-y-4">
-              {listings.map((car) => (
-                <div
-                  key={car._id}
-                  className="bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#333333] rounded-xl p-4"
-                >
-                  <div className="flex gap-3">
-                    <img
-                      src={`http://localhost:5000${car.images[0]}`}
-                      className="w-24 h-16 rounded object-cover"
-                      alt={car.title}
-                    />
+            < div className="md:hidden space-y-4" >
+              {
+                listings.map((car) => (
+                  <div
+                    key={car._id}
+                    className="bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#333333] rounded-xl p-4"
+                  >
+                    <div className="flex gap-3">
+                      <img
+                        src={`http://localhost:5000${car.images[0]}`}
+                        className="w-24 h-16 rounded object-cover"
+                        alt={car.title}
+                      />
 
-                    <div className="flex-1">
-                      <p className="font-medium text-black dark:text-white">
-                        {car.title}
-                      </p>
+                      <div className="flex-1">
+                        <p className="font-medium text-black dark:text-white">
+                          {car.title}
+                        </p>
 
-                      <p className="text-sm text-gray-500">{car.price}</p>
+                        <p className="text-sm text-gray-500">{car.price}</p>
 
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Seller:{" "}
-                        <span className="font-medium">
-                          {car.seller?.name || "Unknown"}
-                        </span>
-                      </p>
-
-                      <p className="text-xs text-gray-500">{car.location}</p>
-
-                      <div className="mt-2 flex gap-2 flex-wrap">
-                        {car.verified && (
-                          <span className="text-xs px-2 py-[2px] bg-blue-500 text-white rounded">
-                            Verified
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Seller:{" "}
+                          <span className="font-medium">
+                            {car.seller?.name || "Unknown"}
                           </span>
-                        )}
+                        </p>
 
-                        {car.featured && (
-                          <span className="text-xs px-2 py-[2px] bg-yellow-400 text-black rounded">
-                            Featured
-                          </span>
-                        )}
+                        <p className="text-xs text-gray-500">{car.location}</p>
+
+                        <div className="mt-2 flex gap-2 flex-wrap">
+                          {car.verified && (
+                            <span className="text-xs px-2 py-[2px] bg-blue-500 text-white rounded">
+                              Verified
+                            </span>
+                          )}
+
+                          {car.featured && (
+                            <span className="text-xs px-2 py-[2px] bg-yellow-400 text-black rounded">
+                              Featured
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
+
+                    {/* ACTIONS */}
+                    <div className="mt-4 flex justify-end gap-3">
+                      <button
+                        onClick={() => toggleFeatured(car._id)}
+                        className={`p-2 rounded-md ${car.featured
+                          ? "bg-yellow-100 text-yellow-600"
+                          : "text-yellow-500"
+                          }`}
+                      >
+                        <FiStar />
+                      </button>
+
+                      <button
+                        onClick={() => toggleVerified(car._id)}
+                        className={`p-2 rounded-md ${car.verified
+                          ? "bg-blue-100 text-blue-600"
+                          : "text-blue-500"
+                          }`}
+                      >
+                        <FiCheckCircle />
+                      </button>
+
+                      <button
+                        onClick={() => deleteListing(car._id)}
+                        className="p-2 text-red-500"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
                   </div>
-
-                  {/* ACTIONS */}
-                  <div className="mt-4 flex justify-end gap-3">
-                    <button
-                      onClick={() => toggleFeatured(car._id)}
-                      className={`p-2 rounded-md ${car.featured
-                        ? "bg-yellow-100 text-yellow-600"
-                        : "text-yellow-500"
-                        }`}
-                    >
-                      <FiStar />
-                    </button>
-
-                    <button
-                      onClick={() => toggleVerified(car._id)}
-                      className={`p-2 rounded-md ${car.verified
-                        ? "bg-blue-100 text-blue-600"
-                        : "text-blue-500"
-                        }`}
-                    >
-                      <FiCheckCircle />
-                    </button>
-
-                    <button
-                      onClick={() => deleteListing(car._id)}
-                      className="p-2 text-red-500"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))
+              }
+            </div >
           </>
         )}
-      </div>
-    </AdminLayout>
+      </div >
+    </AdminLayout >
   );
 }

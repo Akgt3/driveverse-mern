@@ -12,7 +12,7 @@ export default function ChatInbox() {
 
   /* ================= FETCH CHATS ================= */
   const fetchChats = async () => {
-    const res = await fetch("${import.meta.env.VITE_API_URL}/api/chats/my-chats", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL} / api / chats / my - chats`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -52,7 +52,7 @@ export default function ChatInbox() {
     if (!confirm("Delete this conversation?")) return;
 
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/chats/${chatId}`, {
+      await fetch(`${import.meta.env.VITE_API_URL} / api / chats / ${chatId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -68,12 +68,12 @@ export default function ChatInbox() {
   /* ================= DELETE SELECTED ================= */
   const deleteSelected = async () => {
     if (selected.length === 0) return;
-    if (!confirm(`Delete ${selected.length} conversation(s)?`)) return;
+    if (!confirm(`Delete ${selected.length} conversation(s) ? `)) return;
 
     try {
       await Promise.all(
         selected.map((id) =>
-          fetch(`${import.meta.env.VITE_API_URL}/api/chats/${id}`, {
+          fetch(`${import.meta.env.VITE_API_URL} / api / chats / ${id}`, {
             method: "DELETE",
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -193,7 +193,7 @@ export default function ChatInbox() {
             return (
               <Link
                 key={chat._id}
-                to={selectMode ? "#" : `/chat/${otherUser._id}`}
+                to={selectMode ? "#" : `/ chat / ${otherUser._id}`}
                 onClick={(e) => {
                   if (selectMode) {
                     toggleSelect(chat._id, e);

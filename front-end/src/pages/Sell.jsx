@@ -75,7 +75,7 @@ export default function Sell() {
     });
 
     try {
-      const res = await fetch("${import.meta.env.VITE_API_URL}/api/listings", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL} / api / listings`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -192,7 +192,8 @@ export default function Sell() {
                   loading="lazy"
                   src={`https://maps.google.com/maps?q=${encodeURIComponent(
                     location
-                  )}&z=13&output=embed`}
+                  )
+                    }& z=13 & output=embed`}
                 />
               </div>
             )}
@@ -278,7 +279,7 @@ export default function Sell() {
                       className="relative group rounded-md overflow-hidden border border-gray-200 dark:border-[#333333]"
                     >
                       <img
-                        src={img instanceof File ? URL.createObjectURL(img) : `${import.meta.env.VITE_API_URL}${img}`}
+                        src={img instanceof File ? URL.createObjectURL(img) : `${import.meta.env.VITE_API_URL}${img} `}
                         alt="preview"
                         className="h-[100px] w-full object-cover"
                       />
@@ -338,13 +339,13 @@ function SellerCard({ icon, title, desc, active, onClick }) {
     <button
       onClick={onClick}
       className={`
-        flex items-start gap-4 p-5 rounded-lg border
-        text-left transition
+        flex items - start gap - 4 p - 5 rounded - lg border
+    text - left transition
         ${active
           ? "border-black dark:border-white"
           : "border-gray-300 dark:border-[#333333]"
         }
-        bg-white dark:bg-[#0F0F0F]
+    bg - white dark: bg - [#0F0F0F]
       `}
     >
       <div className="text-black dark:text-white">{icon}</div>

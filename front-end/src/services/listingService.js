@@ -1,6 +1,6 @@
 // src/services/listingService.js
 
-const LISTING_API = "${import.meta.env.VITE_API_URL}/api/listings";
+const LISTING_API = `${import.meta.env.VITE_API_URL}/api/listings`;
 
 /* ================= GET ALL LISTINGS (PUBLIC) ================= */
 export const getAllListings = async () => {

@@ -1,4 +1,4 @@
-const USER_API = "${import.meta.env.VITE_API_URL}/api/users";
+const USER_API = `${import.meta.env.VITE_API_URL}/api/users`;
 
 export const changePasswordRequest = async (
   currentPassword,
