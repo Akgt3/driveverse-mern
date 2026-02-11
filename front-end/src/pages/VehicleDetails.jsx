@@ -102,13 +102,12 @@ export default function VehicleDetails() {
 
 
               <img
-                src={car.images[0].startsWith('http')
-                  ? car.images[0]  // Cloudinary URL
+                src={listing.images[activeImage].startsWith('http')  // ✅ CORRECT
+                  ? listing.images[activeImage]
                   : `${import.meta.env.VITE_API_URL}${listing.images[activeImage]}`}
                 alt={listing.title}
                 className="w-full h-[260px] sm:h-[380px] lg:h-[420px] object-cover"
               />
-
               {listing.images.length > 1 && (
                 <>
                   <button
@@ -162,7 +161,7 @@ export default function VehicleDetails() {
                     }`}
                 >
                   <img
-                    src={`http://localhost:5000${img}`}
+                    src={`${import.meta.env.VITE_API_URL}${img}`}
                     className="w-[84px] h-[56px] object-cover rounded"
                   />
                 </button>

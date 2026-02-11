@@ -16,7 +16,7 @@ export default function MyAds() {
   useEffect(() => {
     const fetchMyAds = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/listings/my - ads`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/listings/my-ads`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -96,7 +96,9 @@ export default function MyAds() {
               {/* IMAGE */}
               <div className="relative">
                 <img
-                  src={`${import.meta.env.VITE_API_URL}${car.images[0]}`}
+                  src={car.images[0].startsWith('http')
+                    ? car.images[0]
+                    : `${import.meta.env.VITE_API_URL}${car.images[0]}`}
                   className="w-full h-[190px] object-cover"
                   alt={car.title}
                 />
@@ -147,7 +149,7 @@ export default function MyAds() {
                 {/* SELLER ACTIONS */}
                 <div className="mt-4 flex gap-2">
                   <button
-                    onClick={() => navigate(`/ edit - ad / ${car._id}`)}
+                    onClick={() => navigate(`/edit-ad/${car._id}`)}
                     className="
                       flex-1 flex items-center justify-center gap-2
                       h-[36px] border border-black dark:border-white
