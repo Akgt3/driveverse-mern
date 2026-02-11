@@ -102,7 +102,9 @@ export default function VehicleDetails() {
 
 
               <img
-                src={`${import.meta.env.VITE_API_URL}${listing.images[activeImage]}`}
+                src={car.images[0].startsWith('http')
+                  ? car.images[0]  // Cloudinary URL
+                  : `${import.meta.env.VITE_API_URL}${listing.images[activeImage]}`}
                 alt={listing.title}
                 className="w-full h-[260px] sm:h-[380px] lg:h-[420px] object-cover"
               />

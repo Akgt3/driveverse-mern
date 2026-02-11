@@ -151,7 +151,9 @@ export default function AdminListings() {
                       {/* CAR */}
                       <td className="p-4 flex items-center gap-3">
                         <img
-                          src={`http://localhost:5000${car.images[0]}`}
+                          src={car.images[0].startsWith('http')
+                            ? car.images[0]  // Cloudinary URL
+                            : `${import.meta.env.VITE_API_URL}${car.images[0]}`}
                           className="w-16 h-11 rounded object-cover"
                           alt={car.title}
                         />

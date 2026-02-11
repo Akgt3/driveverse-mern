@@ -57,7 +57,9 @@ export default function CarCard({ car }) {
       {/* IMAGE */}
       <div className="relative">
         <img
-          src={`${import.meta.env.VITE_API_URL}${car.images[0]}`}
+          src={car.images[0].startsWith('http')
+            ? car.images[0]  // Cloudinary URL
+            : `${import.meta.env.VITE_API_URL}${car.images[0]}`}
           alt={car.title}
           className="w-full h-[190px] object-cover"
         />
