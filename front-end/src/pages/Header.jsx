@@ -5,7 +5,6 @@ import {
   FiSun,
   FiMoon,
   FiMenu,
-  FiLogOut
 } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
@@ -14,7 +13,6 @@ import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ProfileMenu from "../components/ProfileMenu";
 import { useNavigate } from "react-router-dom";
-
 
 const socket = io(import.meta.env.VITE_SOCKET_URL, {
   transports: ["websocket"],
@@ -41,8 +39,9 @@ export default function Header() {
     if (!user) return;
 
     try {
+      // ✅ FIXED: NO SPACES IN URL
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/chats/unread - count`,
+        `${import.meta.env.VITE_API_URL}/api/chats/unread-count`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -70,7 +69,6 @@ export default function Header() {
     socket.emit("registerUser", user._id);
 
     socket.on("newNotification", () => {
-      // 🔥 DO NOT increment
       fetchUnreadCount();
     });
 
@@ -84,19 +82,11 @@ export default function Header() {
     return () =>
       window.removeEventListener("clearHeaderNotification", clear);
   }, []);
-  return (
-    <header
-      className="
-      fixed top-0 left-0 z-50
-        w-full
-        bg-white dark:bg-[#0A0A0A]
-        border-b border-gray-200 dark:border-[#333333]
-        transition-colors
-      "
-    >
-      <div className="max-w-[1440px] mx-auto px-6 ">
-        <div className="h-[72px] flex items-center justify-between">
 
+  return (
+    <header className="fixed top-0 left-0 z-50 w-full bg-white dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-[#333333] transition-colors">
+      <div className="max-w-[1440px] mx-auto px-6">
+        <div className="h-[72px] flex items-center justify-between">
           {/* LEFT */}
           <div className="flex items-center gap-14">
             {/* Logo */}
@@ -116,13 +106,10 @@ export default function Header() {
                   key={item.label}
                   to={item.path}
                   className={({ isActive }) =>
-                    `
-        transition
-        ${isActive
+                    `transition ${isActive
                       ? "text-black dark:text-white font-medium border-b-2 border-black dark:border-white pb-1"
                       : "text-gray-800 dark:text-gray-300 hover:text-black dark:hover:text-white"
-                    }
-        `
+                    }`
                   }
                 >
                   {item.label}
@@ -133,7 +120,6 @@ export default function Header() {
 
           {/* RIGHT */}
           <div className="flex items-center gap-4 text-black dark:text-white transition-colors">
-
             {/* Wishlist */}
             <button
               onClick={() => {
@@ -147,15 +133,14 @@ export default function Header() {
             >
               <FiHeart size={20} />
             </button>
+
             {/* Chat */}
-            {/* CHAT */}
-            {/* CHAT */}
             <button
               onClick={() => {
                 if (!user) {
-                  navigate("/auth"); // 👈 not logged in → login page
+                  navigate("/auth");
                 } else {
-                  navigate("/chat"); // 👈 logged in → chat
+                  navigate("/chat");
                 }
               }}
               className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -169,49 +154,28 @@ export default function Header() {
               )}
             </button>
 
-
-            {/* Theme Toggle (DESKTOP) */}
             {/* Theme Toggle (DESKTOP) */}
             <div className="hidden min-[1016px]:flex items-center gap-3">
-
-              {/* SUN */}
               <FiSun
                 size={18}
-                className={`
-      transition - opacity duration - 200
-      ${theme === "dark" ? "opacity-30 text-gray-400" : "opacity-100 text-black"}
-    `}
+                className={`transition-opacity duration-200 ${theme === "dark" ? "opacity-30 text-gray-400" : "opacity-100 text-black"
+                  }`}
               />
 
-              {/* SWITCH */}
               <div
                 onClick={toggleTheme}
-                className="
-      relative w-10 h-5
-      rounded-full cursor-pointer
-      bg-gray-300 dark:bg-neutral-700
-      transition-colors duration-300
-    "
+                className="relative w-10 h-5 rounded-full cursor-pointer bg-gray-300 dark:bg-neutral-700 transition-colors duration-300"
               >
                 <div
-                  className={`
-        absolute top - [2px]
-    w - 4 h - 4 rounded - full
-    bg - white dark: bg - black
-    shadow
-    transition - transform duration - 300 ease -in -out
-        ${theme === "dark" ? "translate-x-5" : "translate-x-1"}
-    `}
+                  className={`absolute top-[2px] w-4 h-4 rounded-full bg-white dark:bg-black shadow transition-transform duration-300 ease-in-out ${theme === "dark" ? "translate-x-5" : "translate-x-1"
+                    }`}
                 />
               </div>
 
-              {/* MOON */}
               <FiMoon
                 size={18}
-                className={`
-    transition - opacity duration - 200
-      ${theme === "dark" ? "opacity-100 text-white" : "opacity-30 text-gray-400"}
-    `}
+                className={`transition-opacity duration-200 ${theme === "dark" ? "opacity-100 text-white" : "opacity-30 text-gray-400"
+                  }`}
               />
             </div>
 
@@ -219,10 +183,7 @@ export default function Header() {
             {!user ? (
               <Link
                 to="/auth"
-                className="
-      hidden min-[1016px]:flex items-center gap-2
-      text-black dark:text-white
-    "
+                className="hidden min-[1016px]:flex items-center gap-2 text-black dark:text-white"
               >
                 <FiUser size={18} />
                 <span className="text-[15px] font-medium">Sign In / Up</span>
@@ -230,14 +191,11 @@ export default function Header() {
             ) : (
               <ProfileMenu user={user} />
             )}
+
             {/* Hamburger (MOBILE) */}
             <button
               onClick={() => setOpen(!open)}
-              className="
-                min-[1016px]:hidden p-2 rounded-md
-                hover:bg-gray-100 dark:hover:bg-gray-800
-                transition
-              "
+              className="min-[1016px]:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition"
             >
               <FiMenu size={22} />
             </button>
@@ -246,118 +204,68 @@ export default function Header() {
       </div>
 
       {/* MOBILE MENU */}
-      {/* MOBILE MENU */}
       {open && (
-        <div className="
-    min-[1016px]:hidden
-    bg-white dark:bg-[#0A0A0A]
-    border-t border-gray-200 dark:border-[#333333]
-    transition-colors
-  ">
+        <div className="min-[1016px]:hidden bg-white dark:bg-[#0A0A0A] border-t border-gray-200 dark:border-[#333333] transition-colors">
           <nav className="flex flex-col px-6 py-4 gap-4 text-[15px] text-black dark:text-white">
-
             {navLinks.map((item) => (
               <NavLink
                 key={item.label}
                 to={item.path}
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
-                  `
-      relative py - 2 pl - 3 transition
-    border - b border - gray - 100 dark: border - [#333333]
-      ${isActive
+                  `relative py-2 pl-3 transition border-b border-gray-100 dark:border-[#333333] ${isActive
                     ? "text-black dark:text-white font-medium"
                     : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
-                  }
-    `
+                  }`
                 }
               >
-                {/* LEFT ACTIVE INDICATOR */}
-                {({ isActive }) =>
-                  isActive && (
-                    <span className="
-          absolute left-0 top-1/2 -translate-y-1/2
-          h-4 w-[3px]
-          bg-black dark:bg-white
-          rounded-full
-        " />
-                  )
-                }
-
                 {item.label}
               </NavLink>
             ))}
-            {/* Theme Toggle (MOBILE) */}
-            {/* Theme Toggle (MOBILE) */}
+
             {/* AUTH (MOBILE ONLY) */}
             {!user && (
               <Link
                 to="/auth"
                 onClick={() => setOpen(false)}
-                className="
-      mt-2 h-[44px]
-      flex items-center justify-center gap-2
-      rounded-lg
-      bg-black text-white
-      dark:bg-white dark:text-black
-      font-medium
-      transition
-    "
+                className="mt-2 h-[44px] flex items-center justify-center gap-2 rounded-lg bg-black text-white dark:bg-white dark:text-black font-medium transition"
               >
                 <FiUser size={18} />
                 Sign In / Up
               </Link>
             )}
 
+            {/* Theme Toggle (MOBILE) */}
             <div className="flex items-center justify-between pt-3">
               <span className="text-sm font-medium">Appearance</span>
 
               <div className="flex items-center gap-3">
                 <FiSun
                   size={16}
-                  className={`
-    transition - opacity duration - 200
-        ${theme === "dark" ? "opacity-30 text-gray-400" : "opacity-100 text-black"}
-    `}
+                  className={`transition-opacity duration-200 ${theme === "dark" ? "opacity-30 text-gray-400" : "opacity-100 text-black"
+                    }`}
                 />
 
                 <div
                   onClick={toggleTheme}
-                  className="
-        relative w-10 h-5
-        rounded-full cursor-pointer
-        bg-gray-300 dark:bg-neutral-700
-        transition-colors duration-300
-      "
+                  className="relative w-10 h-5 rounded-full cursor-pointer bg-gray-300 dark:bg-neutral-700 transition-colors duration-300"
                 >
                   <div
-                    className={`
-          absolute top - [2px]
-    w - 4 h - 4 rounded - full
-    bg - white dark: bg - black
-    shadow
-    transition - transform duration - 300 ease -in -out
-          ${theme === "dark" ? "translate-x-5" : "translate-x-1"}
-    `}
+                    className={`absolute top-[2px] w-4 h-4 rounded-full bg-white dark:bg-black shadow transition-transform duration-300 ease-in-out ${theme === "dark" ? "translate-x-5" : "translate-x-1"
+                      }`}
                   />
                 </div>
 
                 <FiMoon
                   size={16}
-                  className={`
-    transition - opacity duration - 200
-        ${theme === "dark" ? "opacity-100 text-white" : "opacity-30 text-gray-400"}
-    `}
+                  className={`transition-opacity duration-200 ${theme === "dark" ? "opacity-100 text-white" : "opacity-30 text-gray-400"
+                    }`}
                 />
               </div>
             </div>
-
-
           </nav>
         </div>
       )}
     </header>
   );
 }
-
-

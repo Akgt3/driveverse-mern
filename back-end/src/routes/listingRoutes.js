@@ -16,8 +16,8 @@ router.get("/admin/stats", protect, getAdminStats);
 /* ================= CREATE ================= */
 router.post("/", protect, upload.array("images"), async (req, res) => {
   try {
-    const imagePaths =
-      req.files?.map((file) => `/uploads/${file.filename}`) || [];
+    // ✅ CLOUDINARY RETURNS FULL URLs
+    const imagePaths = req.files?.map((file) => file.path) || [];
 
     const listing = await Listing.create({
       ...req.body,
@@ -26,7 +26,8 @@ router.post("/", protect, upload.array("images"), async (req, res) => {
     });
 
     res.status(201).json(listing);
-  } catch {
+  } catch (err) {
+    console.error("Create listing error:", err);
     res.status(500).json({ message: "Failed to create listing" });
   }
 });
@@ -61,7 +62,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-/* ================= ✅ UPDATE (FIXED IMAGE HANDLING) ================= */
+/* ================= UPDATE ================= */
 router.put("/:id", protect, upload.array("images"), async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);
@@ -74,33 +75,29 @@ router.put("/:id", protect, upload.array("images"), async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    // ✅ UPDATE TEXT FIELDS
+    // Update text fields
     Object.assign(listing, req.body);
 
-    // ✅ HANDLE IMAGES PROPERLY
+    // ✅ HANDLE IMAGES
     let finalImages = [];
 
-    // 1️⃣ Get existing images from request (images user wants to keep)
+    // Parse existing images
     if (req.body.existingImages) {
       try {
         const existingImages = JSON.parse(req.body.existingImages);
         finalImages = Array.isArray(existingImages) ? existingImages : [];
       } catch (err) {
         console.error("Error parsing existingImages:", err);
-        finalImages = [];
       }
     }
 
-    // 2️⃣ Add new uploaded images
+    // Add new uploaded images (Cloudinary URLs)
     if (req.files && req.files.length > 0) {
-      const newImages = req.files.map((file) => `/uploads/${file.filename}`);
+      const newImages = req.files.map((file) => file.path);
       finalImages = [...finalImages, ...newImages];
     }
 
-    // 3️⃣ Update listing images
     listing.images = finalImages;
-
-    // ✅ REBUILD TITLE
     listing.title = `${listing.brand} ${listing.model}`.trim();
 
     await listing.save();
