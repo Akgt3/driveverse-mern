@@ -13,7 +13,7 @@ export default function Wishlist() {
     const fetchWishlist = async () => {
       try {
         const res = await fetch(
-          `${import.meta.env.VITE_API_URL} / users / wishlist`,
+          `${import.meta.env.VITE_API_URL}/users/wishlist`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

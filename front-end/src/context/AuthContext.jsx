@@ -4,11 +4,22 @@ import socket from "../socket/socket";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const storedUser = localStorage.getItem("user");
+  // ✅ FIXED: Safe localStorage parsing
+  const getStoredUser = () => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (!stored || stored === "undefined" || stored === "null") {
+        return null;
+      }
+      return JSON.parse(stored);
+    } catch (error) {
+      console.error("Failed to parse stored user:", error);
+      localStorage.removeItem("user");
+      return null;
+    }
+  };
 
-  const [user, setUser] = useState(
-    storedUser ? JSON.parse(storedUser) : null
-  );
+  const [user, setUser] = useState(getStoredUser());
   const [wishlist, setWishlist] = useState([]);
 
   /* ================= SOCKET CONNECT (ONCE) ================= */
@@ -58,7 +69,7 @@ export function AuthProvider({ children }) {
     const fetchWishlist = async () => {
       try {
         const res = await fetch(
-          `${import.meta.env.VITE_API_URL} / api / users / wishlist`,
+          `${import.meta.env.VITE_API_URL}/api/users/wishlist`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

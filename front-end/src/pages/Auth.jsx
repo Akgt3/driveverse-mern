@@ -91,7 +91,7 @@ export default function Auth() {
                   onSuccess={async (credentialResponse) => {
                     try {
                       const res = await fetch(
-                        `${import.meta.env.VITE_API_URL} / api / auth / google`,
+                        `${import.meta.env.VITE_API_URL}/api/auth/google`,
                         {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },

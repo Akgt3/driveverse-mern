@@ -42,7 +42,7 @@ export default function AdminUsers() {
     const fetchUsers = async () => {
       try {
         const res = await fetch(
-          `${import.meta.env.VITE_API_URL} / api / users / admin / all`,
+          `${import.meta.env.VITE_API_URL}/api/users/admin/all`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

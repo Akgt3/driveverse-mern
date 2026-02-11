@@ -1,45 +1,30 @@
 import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
+import path from "path";
 
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-// Create storage engine
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: "driveverse-cars",
-    allowed_formats: ["jpg", "jpeg", "png", "webp"],
-    transformation: [{ width: 1200, height: 800, crop: "limit" }],
+const storage = multer.diskStorage({
+  destination(req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename(req, file, cb) {
+    cb(
+      null,
+      `${Date.now()}-${file.originalname.replace(/\s+/g, "")}`
+    );
   },
 });
 
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
-});
+function fileFilter(req, file, cb) {
+  const allowed = /jpg|jpeg|png|webp/;
+  const ext = allowed.test(path.extname(file.originalname).toLowerCase());
+  const mime = allowed.test(file.mimetype);
+
+  if (ext && mime) {
+    cb(null, true);
+  } else {
+    cb(new Error("Images only"));
+  }
+}
+
+const upload = multer({ storage, fileFilter });
 
 export default upload;
-```
-
-### D. Add Cloudinary Variables to Render
-
-Go to Render → Your Service → Environment
-
-Add these 3 new variables:
-```
-Key: CLOUDINARY_CLOUD_NAME
-Value: your_cloud_name_from_cloudinary
-  ```
-```
-Key: CLOUDINARY_API_KEY
-Value: your_api_key_from_cloudinary
-  ```
-```
-Key: CLOUDINARY_API_SECRET
-Value: your_api_secret_from_cloudinary

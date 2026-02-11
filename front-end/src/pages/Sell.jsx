@@ -75,7 +75,7 @@ export default function Sell() {
     });
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL} / api / listings`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/listings`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

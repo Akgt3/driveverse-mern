@@ -13,7 +13,7 @@ export default function AdminListings() {
 
   const fetchListings = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL} / api / listings`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/listings`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -32,7 +32,7 @@ export default function AdminListings() {
   const toggleFeatured = async (id) => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL} / api / listings / admin / feature / ${id}`,
+        `${import.meta.env.VITE_API_URL}/api/listings/admin/feature/${id}`,
         {
           method: "PATCH",
           headers: {
@@ -62,7 +62,7 @@ export default function AdminListings() {
   const toggleVerified = async (id) => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL} / api / listings / admin / verify / ${id}`,
+        `${import.meta.env.VITE_API_URL}/api/listings/admin/verify/${id}`,
         {
           method: "PATCH",
           headers: {
@@ -93,7 +93,7 @@ export default function AdminListings() {
     if (!window.confirm("Delete this listing permanently?")) return;
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL} / api / listings / ${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/listings/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

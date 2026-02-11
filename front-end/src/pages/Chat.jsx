@@ -52,7 +52,7 @@ export default function Chat() {
   /* ================= CREATE/GET CHAT ================= */
   useEffect(() => {
     const createChat = async () => {
-      const res = await fetch(`${import.meta.env.VITE_API_URL} / api / chats / create`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chats/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -207,7 +207,7 @@ export default function Chat() {
     setMessages((prev) => [...prev, temp]);
     setMessage("");
 
-    const res = await fetch(`${import.meta.env.VITE_API_URL} / api / messages`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/messages`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -279,7 +279,7 @@ export default function Chat() {
     setPreviewImage(null);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}api / messages / upload`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}api/messages/upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

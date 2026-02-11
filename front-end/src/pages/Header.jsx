@@ -42,7 +42,7 @@ export default function Header() {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL} / api / chats / unread - count`,
+        `${import.meta.env.VITE_API_URL}/api/chats/unread - count`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
