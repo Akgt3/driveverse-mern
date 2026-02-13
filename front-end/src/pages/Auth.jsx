@@ -110,8 +110,35 @@ export default function Auth() {
                     }
                   }}
                   onError={() => toast.error("Google login failed")}
+                  useOneTap={false}            // 🔥 disable auto UI
+                  auto_select={false}         // 🔥 disable auto account
+                  prompt="select_account"     // 🔥 force account chooser
+                  theme="outline"
+                  size="large"
+                  shape="rectangular"
                 />
               </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
               {/* DIVIDER */}
               <div className="flex items-center gap-3 my-6">
