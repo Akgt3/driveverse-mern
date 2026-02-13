@@ -102,10 +102,11 @@ export default function VehicleDetails() {
 
 
               <img
-                src={listing.images[activeImage].startsWith('http')  // ✅ CORRECT
+                src={listing.images[activeImage].startsWith('https://')  // ✅ CORRECT
                   ? listing.images[activeImage]
-                  : `${import.meta.env.VITE_API_URL}${listing.images[activeImage]}`}
-                alt={listing.title}
+                  : listing.images[activeImage].startsWith('http://')
+                    ? listing.images[activeImage].replace('http://', 'https://')
+                    : `${import.meta.env.VITE_API_URL}${listing.images[activeImage]}`} alt={listing.title}
                 className="w-full h-[260px] sm:h-[380px] lg:h-[420px] object-cover"
               />
               {listing.images.length > 1 && (

@@ -7,9 +7,7 @@ import SellerTypeBadge from "./SellerTypeBadge";
 
 export default function CarCard({ car }) {
   const navigate = useNavigate();
-
   const { user, wishlist, setWishlist } = useAuth();
-
   const isWishlisted = wishlist.includes(car._id);
 
   const handleWishlist = async () => {
@@ -44,27 +42,38 @@ export default function CarCard({ car }) {
     }
   };
 
-  // ✅ SAFE IMAGE URL BUILDER - NO EXTERNAL FALLBACKS
+  // ✅ DEPLOYMENT-SAFE IMAGE URL BUILDER
   const getImageUrl = () => {
-    // Check if car has images array
     if (!car.images || !Array.isArray(car.images) || car.images.length === 0) {
-      return null; // Will show fallback div below
+      return null;
     }
 
     const firstImage = car.images[0];
-
-    // Check if image exists and is a string
     if (!firstImage || typeof firstImage !== 'string') {
       return null;
     }
 
-    // Cloudinary or external URL
-    if (firstImage.startsWith('http')) {
+    // ✅ CLOUDINARY URL (starts with https://res.cloudinary.com)
+    if (firstImage.startsWith('https://')) {
       return firstImage;
     }
 
-    // Local/uploaded image
-    return `${import.meta.env.VITE_API_URL}${firstImage}`;
+    // ✅ CLOUDINARY URL (older format without https)
+    if (firstImage.startsWith('http://')) {
+      return firstImage.replace('http://', 'https://');
+    }
+
+    // ✅ RELATIVE PATH (local development only)
+    if (firstImage.startsWith('/')) {
+      return `${import.meta.env.VITE_API_URL}${firstImage}`;
+    }
+
+    // ✅ FALLBACK: Assume it's a Cloudinary URL without protocol
+    if (firstImage.includes('cloudinary')) {
+      return firstImage.startsWith('//') ? `https:${firstImage}` : `https://${firstImage}`;
+    }
+
+    return null;
   };
 
   const imageUrl = getImageUrl();
@@ -87,14 +96,14 @@ export default function CarCard({ car }) {
             alt={car.title || "Car image"}
             className="w-full h-[190px] object-cover"
             onError={(e) => {
-              // Hide broken image, show fallback
+              console.error("Image failed to load:", imageUrl);
               e.target.style.display = 'none';
               e.target.nextElementSibling.style.display = 'flex';
             }}
           />
         ) : null}
 
-        {/* ✅ FALLBACK DIV - NO EXTERNAL URL */}
+        {/* FALLBACK */}
         <div
           className="w-full h-[190px] bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400"
           style={{ display: imageUrl ? 'none' : 'flex' }}
@@ -104,7 +113,7 @@ export default function CarCard({ car }) {
           </svg>
         </div>
 
-        {/* WISHLIST — hide for seller */}
+        {/* WISHLIST */}
         {user && car.seller && user._id !== car.seller._id && (
           <button
             onClick={handleWishlist}
@@ -128,15 +137,7 @@ export default function CarCard({ car }) {
 
         {/* FEATURED */}
         {car.featured && (
-          <span
-            className="
-              absolute top-2 left-2
-              bg-yellow-500 text-black
-              text-[11px] font-medium
-              px-2 py-[2px]
-              rounded
-            "
-          >
+          <span className="absolute top-2 left-2 bg-yellow-500 text-black text-[11px] font-medium px-2 py-[2px] rounded">
             FEATURED
           </span>
         )}
@@ -151,6 +152,7 @@ export default function CarCard({ car }) {
         <div className="mt-1 text-[15px] text-[#1F2933] dark:text-neutral-100 line-clamp-2">
           {car.title || "Untitled listing"}
         </div>
+
         <div className="mt-2 flex items-center gap-2">
           <SellerTypeBadge type={car.sellerType} />
         </div>
@@ -159,7 +161,7 @@ export default function CarCard({ car }) {
           {car.year || "N/A"} · {car.km || "N/A"} km
         </div>
 
-        {/* VERIFIED BADGE */}
+        {/* VERIFIED */}
         {car.verified && (
           <div className="mt-2 inline-flex items-center gap-1 text-[11px] px-2 py-[2px] bg-blue-500 text-white rounded">
             <FiCheckCircle size={12} />
@@ -182,7 +184,6 @@ export default function CarCard({ car }) {
 
         <Link
           to={`/buy/${car._id}`}
-          onClick={() => console.log("CLICKED ID:", car._id)}
           className="
             mt-4 block text-center h-[38px] leading-[38px]
             border border-black dark:border-white

@@ -115,7 +115,7 @@ export default function AdminListings() {
   // ✅ SAFE IMAGE URL FUNCTION
   const getImageUrl = (car) => {
     if (!car.images || !Array.isArray(car.images) || car.images.length === 0) {
-      return null; // Will show fallback below
+      return null;
     }
 
     const firstImage = car.images[0];
@@ -123,9 +123,14 @@ export default function AdminListings() {
       return null;
     }
 
-    // Cloudinary or external URL
-    if (firstImage.startsWith('http')) {
+    // Cloudinary URL
+    if (firstImage.startsWith('https://')) {
       return firstImage;
+    }
+
+    // HTTP to HTTPS
+    if (firstImage.startsWith('http://')) {
+      return firstImage.replace('http://', 'https://');
     }
 
     // Local uploaded image
