@@ -71,17 +71,9 @@ export default function VehicleDetails() {
     setActiveImage(0);
   }, [id]);
 
-
-
-
-
   if (loading) {
     return <PageSkeleton type="vehicle-details" />;
   }
-
-
-
-
 
   if (!listing) {
     return (
@@ -99,14 +91,15 @@ export default function VehicleDetails() {
           <div className="flex-1 space-y-6">
             {/* IMAGE */}
             <div className="relative rounded-xl overflow-hidden bg-neutral-100 dark:bg-[#1a1a1a]">
-
-
               <img
-                src={listing.images[activeImage].startsWith('https://')  // ✅ CORRECT
-                  ? listing.images[activeImage]
-                  : listing.images[activeImage].startsWith('http://')
-                    ? listing.images[activeImage].replace('http://', 'https://')
-                    : `${import.meta.env.VITE_API_URL}${listing.images[activeImage]}`} alt={listing.title}
+                src={
+                  listing.images[activeImage].startsWith('https://')
+                    ? listing.images[activeImage]
+                    : listing.images[activeImage].startsWith('http://')
+                      ? listing.images[activeImage].replace('http://', 'https://')
+                      : `${import.meta.env.VITE_API_URL}${listing.images[activeImage]}`
+                }
+                alt={listing.title}
                 className="w-full h-[260px] sm:h-[380px] lg:h-[420px] object-cover"
               />
               {listing.images.length > 1 && (
@@ -150,20 +143,27 @@ export default function VehicleDetails() {
                 )}
             </div>
 
-            {/* THUMBNAILS */}
+            {/* ✅ THUMBNAILS - FIXED FOR CLOUDINARY */}
             <div className="flex gap-3 overflow-x-auto no-scrollbar">
               {listing.images.map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveImage(i)}
-                  className={`border rounded transition ${activeImage === i
+                  className={`border rounded transition flex-shrink-0 ${activeImage === i
                     ? "border-black dark:border-white"
                     : "border-gray-300 dark:border-neutral-700"
                     }`}
                 >
                   <img
-                    src={`${import.meta.env.VITE_API_URL}${img}`}
+                    src={
+                      img.startsWith('https://')
+                        ? img
+                        : img.startsWith('http://')
+                          ? img.replace('http://', 'https://')
+                          : `${import.meta.env.VITE_API_URL}${img}`
+                    }
                     className="w-[84px] h-[56px] object-cover rounded"
+                    alt={`Thumbnail ${i + 1}`}
                   />
                 </button>
               ))}

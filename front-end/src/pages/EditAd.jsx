@@ -215,7 +215,7 @@ export default function EditAd() {
 
             {/* MAP PREVIEW */}
             {form.location && (
-              <div className="mt-4 rounded-lg overflow-hidden border border-gray-200 dark:border-[#333333]">
+              <div className="md:col-span-2 mt-4 rounded-lg overflow-hidden border border-gray-200 dark:border-[#333333]">
                 <iframe
                   title="map"
                   className="w-full h-[260px]"
@@ -257,16 +257,17 @@ export default function EditAd() {
             rows={4}
             value={form.description}
             onChange={(e) => handleChange("description", e.target.value)}
+            placeholder="Describe your vehicle..."
             className="w-full px-4 py-3 rounded-md border border-gray-300 dark:border-[#333333] bg-white dark:bg-[#121212] text-black dark:text-white"
           />
 
-          {/* ✅ IMAGE MANAGEMENT - FIXED */}
+          {/* ✅ IMAGE MANAGEMENT - FIXED FOR CLOUDINARY */}
           <div>
             <p className="text-sm font-medium text-black dark:text-white mb-2">
               Manage Photos
             </p>
 
-            {/* EXISTING IMAGES */}
+            {/* EXISTING IMAGES - FIXED */}
             {images.length > 0 && (
               <div className="mb-4">
                 <p className="text-xs text-gray-500 dark:text-neutral-400 mb-2">
@@ -279,9 +280,15 @@ export default function EditAd() {
                       className="relative group rounded-md overflow-hidden border border-gray-200 dark:border-[#333333]"
                     >
                       <img
-                        src={`${import.meta.env.VITE_API_URL}${img}`}
+                        src={
+                          img.startsWith('https://')
+                            ? img
+                            : img.startsWith('http://')
+                              ? img.replace('http://', 'https://')
+                              : `${import.meta.env.VITE_API_URL}${img}`
+                        }
                         className="h-[100px] w-full object-cover"
-                        alt="Existing"
+                        alt={`Existing ${index + 1}`}
                       />
                       <button
                         type="button"
@@ -312,7 +319,7 @@ export default function EditAd() {
                       <img
                         src={URL.createObjectURL(img)}
                         className="h-[100px] w-full object-cover"
-                        alt="New"
+                        alt={`New ${index + 1}`}
                       />
                       <span className="absolute top-1 left-1 bg-green-500 text-white text-[10px] px-2 py-0.5 rounded">
                         NEW
