@@ -1,3 +1,4 @@
+
 import { Server } from "socket.io";
 
 export const initSocket = (server) => {
@@ -24,40 +25,28 @@ export const initSocket = (server) => {
       console.log(`💬 Joined chat room: ${chatId}`);
     });
 
-    // 📤 Send message (INSTANT - NO DELAYS)
+    // 📤 Send message (INSTANT)
     socket.on("sendMessage", (data) => {
-      const { chatId, receiverId, sender, ...messageData } = data;
+      const { chatId, receiverId, ...messageData } = data;
 
-      if (!chatId || !receiverId || !sender) return;
+      if (!chatId || !receiverId) return;
 
-      console.log(`📤 Message: ${sender} → ${receiverId} in chat ${chatId}`);
+      console.log(`📤 Message sent in chat ${chatId} to user ${receiverId}`);
 
-      // ✅ SEND TO CHAT ROOM (BOTH SEE INSTANTLY)
-      io.to(chatId.toString()).emit("receiveMessage", {
-        ...messageData,
-        sender,
-      });
+      // ✅ INSTANT: Send to chat room
+      io.to(chatId.toString()).emit("receiveMessage", messageData);
 
-      // ✅ CRITICAL: Only notify RECEIVER's header (NOT sender's)
-      if (receiverId.toString() !== sender.toString()) {
-        io.to(receiverId.toString()).emit("newNotification");
-        console.log(`📬 Header notification sent to ${receiverId}`);
-      } else {
-        console.log(`⛔ Skipped self-notification for ${sender}`);
-      }
-
-      // ✅ UPDATE CHATINBOX FOR BOTH USERS (INSTANT)
-      io.to(sender.toString()).emit("chatListUpdate");
-      io.to(receiverId.toString()).emit("chatListUpdate");
+      // ✅ INSTANT: Notify receiver's header
+      io.to(receiverId.toString()).emit("newNotification");
     });
 
     // ✅ Mark message as seen (INSTANT DOUBLE TICK)
-    socket.on("markSeen", ({ chatId, messageId, seenBy }) => {
+    socket.on("markSeen", ({ chatId, messageId }) => {
       if (!chatId || !messageId) return;
 
-      console.log(`✅ Message ${messageId} seen by ${seenBy} in chat ${chatId}`);
+      console.log(`✅ Message ${messageId} marked as seen in chat ${chatId}`);
 
-      // ✅ INSTANT DOUBLE TICK TO CHAT ROOM
+      // Emit to chat room so sender sees double tick instantly
       io.to(chatId.toString()).emit("messageSeen", { messageId });
     });
 
@@ -75,3 +64,6 @@ export const initSocket = (server) => {
 
   return io;
 };
+
+
+

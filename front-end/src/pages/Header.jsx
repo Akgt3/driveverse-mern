@@ -6,23 +6,28 @@ import {
   FiMoon,
   FiMenu,
 } from "react-icons/fi";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
+import { io } from "socket.io-client";
 import { useTheme } from "../context/ThemeContext";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ProfileMenu from "../components/ProfileMenu";
-import socket from "../socket/socket";
+
+const socket = io(import.meta.env.VITE_SOCKET_URL, {
+  transports: ["websocket"],
+});
 
 export default function Header() {
   const [open, setOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   // ✅ BLOCK HEADER FOR ADMIN
   useEffect(() => {
     if (user?.role === "admin" && !location.pathname.startsWith("/admin")) {
+      console.log("🚫 Admin trying to access user area - redirecting");
       navigate("/admin", { replace: true });
     }
   }, [user, location, navigate]);
@@ -39,7 +44,7 @@ export default function Header() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   /* ================= FETCH HEADER COUNT ================= */
-  const fetchUnreadCount = useCallback(async () => {
+  const fetchUnreadCount = async () => {
     if (!user) return;
 
     try {
@@ -57,30 +62,26 @@ export default function Header() {
     } catch (err) {
       console.error("Header unread fetch failed");
     }
-  }, [user]);
+  };
 
   /* ================= INITIAL LOAD ================= */
   useEffect(() => {
     if (!user?._id) return;
     fetchUnreadCount();
-  }, [user, fetchUnreadCount]);
+  }, [user]);
 
-  /* ================= SOCKET LISTENER (ONLY FOR RECEIVED MESSAGES) ================= */
+  /* ================= SOCKET LISTENER ================= */
   useEffect(() => {
     if (!user?._id) return;
 
     socket.emit("registerUser", user._id);
 
-    // ✅ ONLY updates when someone ELSE sends you a message
-    const handleNotification = () => {
-      console.log("📬 Header notification received");
+    socket.on("newNotification", () => {
       fetchUnreadCount();
-    };
+    });
 
-    socket.on("newNotification", handleNotification);
-
-    return () => socket.off("newNotification", handleNotification);
-  }, [user, fetchUnreadCount]);
+    return () => socket.off("newNotification");
+  }, [user]);
 
   /* ================= CLEAR WHEN OPEN CHAT ================= */
   useEffect(() => {
@@ -88,7 +89,7 @@ export default function Header() {
     window.addEventListener("clearHeaderNotification", clear);
     return () =>
       window.removeEventListener("clearHeaderNotification", clear);
-  }, [fetchUnreadCount]);
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 z-50 w-full bg-white dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-[#333333] transition-colors">
