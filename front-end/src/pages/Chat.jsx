@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { FiSend, FiArrowLeft, FiCheck, FiImage, FiX } from "react-icons/fi";
@@ -96,12 +95,22 @@ export default function Chat() {
         firstLoadRef.current = false;
       }, 0);
 
-      // Mark as read immediately
+      // ✅ Mark as read + notify sender with double tick
       await fetch(`${import.meta.env.VITE_API_URL}/api/chats/read/${chatId}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
+      });
+
+      // ✅ EMIT SEEN EVENT for all unread messages
+      const unreadMessages = data.filter(m => m.sender !== currentUserId && !m.seen);
+      unreadMessages.forEach(msg => {
+        socket.emit("markSeen", {
+          chatId,
+          messageId: msg._id,
+          senderId: msg.sender
+        });
       });
     };
 
@@ -109,46 +118,63 @@ export default function Chat() {
     socket.emit("joinChat", chatId);
   }, [chatId, currentUserId]);
 
-  /* ================= SOCKET RECEIVE MESSAGE ================= */
+  /* ================= 🔥 SOCKET RECEIVE MESSAGE - INSTANT ================= */
   useEffect(() => {
     if (!chatId) return;
 
     const onReceive = (msg) => {
-      if (msg.sender === currentUserId) return;
+      console.log("📩 [INSTANT] Received message:", msg);
 
-      // ✅ OPTIMISTIC UPDATE - ADD INSTANTLY
-      setMessages((prev) => [
-        ...prev,
-        {
-          ...msg,
-          from: "seller",
-          time: new Date(msg.createdAt).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        },
-      ]);
+      // ✅ ADD MESSAGE INSTANTLY (no duplicate check needed - socket room handles this)
+      setMessages((prev) => {
+        // Check if message already exists (avoid duplicates)
+        const exists = prev.some(m => m._id === msg._id);
+        if (exists) return prev;
 
-      // ✅ MARK AS READ INSTANTLY
-      fetch(`${import.meta.env.VITE_API_URL}/api/chats/read/${chatId}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }).then(() => {
-        socket.emit("markSeen", { chatId, messageId: msg._id });
+        return [
+          ...prev,
+          {
+            ...msg,
+            from: msg.sender === currentUserId ? "user" : "seller",
+            time: new Date(msg.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          },
+        ];
       });
+
+      // ✅ If message is FROM someone else, mark as seen INSTANTLY
+      if (msg.sender !== currentUserId) {
+        // Mark as read in backend
+        fetch(`${import.meta.env.VITE_API_URL}/api/chats/read/${chatId}`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        // ✅ INSTANT: Emit seen event so sender gets double tick
+        socket.emit("markSeen", {
+          chatId,
+          messageId: msg._id,
+          senderId: msg.sender
+        });
+      }
     };
 
     socket.on("receiveMessage", onReceive);
     return () => socket.off("receiveMessage", onReceive);
   }, [chatId, currentUserId]);
 
-  /* ================= SOCKET MESSAGE SEEN ================= */
+  /* ================= 🔥 SOCKET MESSAGE SEEN - INSTANT DOUBLE TICK ================= */
   useEffect(() => {
     if (!chatId) return;
 
     const onSeen = ({ messageId }) => {
+      console.log("👁️ [INSTANT] Message seen:", messageId);
+
+      // ✅ INSTANT: Update message to seen
       setMessages((prev) =>
         prev.map((m) => (m._id === messageId ? { ...m, seen: true } : m))
       );
@@ -177,7 +203,6 @@ export default function Chat() {
     if (firstLoadRef.current) return;
 
     if (isAtBottomRef.current) {
-      // ✅ USE RAF FOR SMOOTH SCROLL
       requestAnimationFrame(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
       });
@@ -195,6 +220,7 @@ export default function Chat() {
       content: message,
       text: message,
       type: "text",
+      sender: currentUserId,
       createdAt: new Date().toISOString(),
       time: new Date().toLocaleTimeString([], {
         hour: "2-digit",
@@ -203,7 +229,7 @@ export default function Chat() {
       seen: false,
     };
 
-    // ✅ OPTIMISTIC UPDATE - ADD INSTANTLY
+    // ✅ OPTIMISTIC UPDATE
     setMessages((prev) => [...prev, temp]);
     setMessage("");
 
@@ -223,11 +249,12 @@ export default function Chat() {
 
     const saved = await res.json();
 
-    // Replace temp message with real one
+    // ✅ Replace temp with real message
     setMessages((prev) =>
       prev.map((m) => (m._id === tempId ? { ...m, _id: saved._id } : m))
     );
 
+    // ✅ EMIT TO SOCKET - INSTANT DELIVERY
     socket.emit("sendMessage", {
       ...saved,
       chatId,
@@ -268,6 +295,7 @@ export default function Chat() {
       from: "user",
       content: previewImage.preview,
       type: "image",
+      sender: currentUserId,
       createdAt: new Date().toISOString(),
       time: new Date().toLocaleTimeString([], {
         hour: "2-digit",
@@ -276,7 +304,6 @@ export default function Chat() {
       seen: false,
     };
 
-    // ✅ OPTIMISTIC UPDATE
     setMessages((prev) => [...prev, temp]);
     setPreviewImage(null);
 
@@ -291,7 +318,6 @@ export default function Chat() {
 
       const saved = await res.json();
 
-      // Replace temp with real image URL
       setMessages((prev) =>
         prev.map((m) =>
           m._id === tempId
@@ -312,7 +338,6 @@ export default function Chat() {
       });
     } catch (err) {
       console.error("Image upload failed:", err);
-      // Remove failed message
       setMessages((prev) => prev.filter((m) => m._id !== tempId));
     } finally {
       setUploading(false);
@@ -414,7 +439,6 @@ export default function Chat() {
 
       {/* INPUT */}
       <div className="h-[56px] sm:h-[72px] px-3 sm:px-4 border-t border-gray-200 dark:border-neutral-800 flex items-center gap-2 sm:gap-3 bg-white dark:bg-[#141414]">
-        {/* IMAGE BUTTON */}
         <button
           onClick={() => fileInputRef.current?.click()}
           className="text-gray-600 dark:text-gray-300"
@@ -429,7 +453,6 @@ export default function Chat() {
           onChange={handleImageSelect}
         />
 
-        {/* INPUT */}
         <input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -438,7 +461,6 @@ export default function Chat() {
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
         />
 
-        {/* SEND */}
         <button
           onClick={sendMessage}
           className="flex items-center justify-center text-black dark:text-white"
@@ -474,8 +496,8 @@ function MessageBubble({ msg }) {
           />
           <div
             className={`px-3 py-1 text-[10px] flex items-center justify-end gap-1 ${isUser
-              ? "bg-black text-white dark:bg-white dark:text-black"
-              : "bg-gray-100 dark:bg-neutral-800"
+                ? "bg-black text-white dark:bg-white dark:text-black"
+                : "bg-gray-100 dark:bg-neutral-800"
               }`}
           >
             <span className="opacity-60">{msg.time}</span>
@@ -495,8 +517,8 @@ function MessageBubble({ msg }) {
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div
         className={`max-w-[78%] px-3 sm:px-4 py-2 rounded-2xl text-[13px] sm:text-sm ${isUser
-          ? "bg-black text-white dark:bg-white dark:text-black rounded-br-md"
-          : "bg-gray-100 dark:bg-neutral-800 text-black dark:text-white rounded-bl-md"
+            ? "bg-black text-white dark:bg-white dark:text-black rounded-br-md"
+            : "bg-gray-100 dark:bg-neutral-800 text-black dark:text-white rounded-bl-md"
           }`}
       >
         <p>{msg.text || msg.content}</p>
@@ -513,6 +535,3 @@ function MessageBubble({ msg }) {
     </div>
   );
 }
-
-
-

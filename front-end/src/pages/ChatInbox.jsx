@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { FiCheck, FiTrash2, FiCheckSquare, FiSquare } from "react-icons/fi";
 import socket from "../socket/socket";
@@ -9,17 +8,53 @@ export default function ChatInbox() {
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState([]);
 
+  // ✅ Prevent duplicate fetches
+  const isFetchingRef = useRef(false);
+  const lastFetchTimeRef = useRef(0);
+
   const currentUserId = JSON.parse(localStorage.getItem("user"))?._id;
 
-  /* ================= FETCH CHATS ================= */
+  /* ================= FETCH CHATS WITH DEDUPLICATION ================= */
   const fetchChats = async () => {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chats/my-chats`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
-    const data = await res.json();
-    setChats(data);
+    // ✅ Prevent multiple simultaneous fetches
+    if (isFetchingRef.current) {
+      console.log("⏳ Already fetching, skipping...");
+      return;
+    }
+
+    // ✅ Debounce: Don't fetch more than once per 500ms
+    const now = Date.now();
+    if (now - lastFetchTimeRef.current < 500) {
+      console.log("⏳ Too soon, debouncing...");
+      return;
+    }
+
+    isFetchingRef.current = true;
+    lastFetchTimeRef.current = now;
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chats/my-chats`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      const data = await res.json();
+
+      // ✅ Deduplicate by chat ID
+      const uniqueChats = Array.isArray(data)
+        ? data.filter((chat, index, self) =>
+          index === self.findIndex(c => c._id === chat._id)
+        )
+        : [];
+
+      setChats(uniqueChats);
+      console.log("📊 Chats updated:", uniqueChats.length);
+    } catch (err) {
+      console.error("Failed to fetch chats:", err);
+      setChats([]);
+    } finally {
+      isFetchingRef.current = false;
+    }
   };
 
   /* ================= INITIAL LOAD ================= */
@@ -32,18 +67,47 @@ export default function ChatInbox() {
     socket.emit("registerUser", currentUserId);
   }, [currentUserId]);
 
-  /* ================= REALTIME UPDATE ================= */
+  /* ================= REALTIME UPDATE - DEBOUNCED ================= */
   useEffect(() => {
-    const onNotify = () => {
-      fetchChats();
+    if (!currentUserId) return;
+
+    // ✅ Debounced refresh function
+    let refreshTimeout;
+    const debouncedRefresh = () => {
+      clearTimeout(refreshTimeout);
+      refreshTimeout = setTimeout(() => {
+        fetchChats();
+      }, 300); // Wait 300ms after last event
     };
 
-    socket.on("newNotification", onNotify);
+    const onNewNotification = (data) => {
+      console.log("🔔 [INBOX] New notification:", data);
+      debouncedRefresh();
+    };
+
+    const onChatUpdated = (data) => {
+      console.log("💬 [INBOX] Chat updated:", data);
+      debouncedRefresh();
+    };
+
+    const onReceiveMessage = (msg) => {
+      console.log("📩 [INBOX] Message received:", msg);
+      if (msg.sender !== currentUserId) {
+        debouncedRefresh();
+      }
+    };
+
+    socket.on("newNotification", onNewNotification);
+    socket.on("chatUpdated", onChatUpdated);
+    socket.on("receiveMessage", onReceiveMessage);
 
     return () => {
-      socket.off("newNotification", onNotify);
+      clearTimeout(refreshTimeout);
+      socket.off("newNotification", onNewNotification);
+      socket.off("chatUpdated", onChatUpdated);
+      socket.off("receiveMessage", onReceiveMessage);
     };
-  }, []);
+  }, [currentUserId]);
 
   /* ================= DELETE SINGLE CHAT ================= */
   const deleteChat = async (chatId, e) => {
@@ -242,20 +306,17 @@ export default function ChatInbox() {
                   {/* BOTTOM */}
                   <div className="flex items-center justify-between mt-0.5">
                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
-                      {chat.lastMessage}
-
-                      {/* TICKS */}
                       {chat.lastMessageSender === currentUserId && (
-                        <span className="flex items-center ml-1 pt-1 text-gray-500">
+                        <span className="flex items-center mr-1 text-gray-500">
                           <FiCheck size={13} />
                           {chat.unreadCount === 0 && (
                             <FiCheck size={13} className="-ml-2" />
                           )}
                         </span>
                       )}
+                      {chat.lastMessage}
                     </p>
 
-                    {/* UNREAD BADGE */}
                     {isReceiver && chat.unreadCount > 0 && (
                       <span className="ml-3 min-w-[20px] h-[20px] px-1.5 text-[11px] bg-green-500 text-white rounded-full flex items-center justify-center font-medium">
                         {chat.unreadCount}
@@ -264,7 +325,7 @@ export default function ChatInbox() {
                   </div>
                 </div>
 
-                {/* DELETE BUTTON (NON-SELECT MODE) */}
+                {/* DELETE BUTTON */}
                 {!selectMode && (
                   <button
                     onClick={(e) => deleteChat(chat._id, e)}
@@ -281,4 +342,3 @@ export default function ChatInbox() {
     </div>
   );
 }
-

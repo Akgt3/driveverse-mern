@@ -6,7 +6,7 @@ import {
   FiMoon,
   FiMenu,
 } from "react-icons/fi";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import { useTheme } from "../context/ThemeContext";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
@@ -15,6 +15,7 @@ import ProfileMenu from "../components/ProfileMenu";
 
 const socket = io(import.meta.env.VITE_SOCKET_URL, {
   transports: ["websocket"],
+  autoConnect: false,
 });
 
 export default function Header() {
@@ -24,7 +25,10 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ BLOCK HEADER FOR ADMIN
+  // ✅ Prevent duplicate fetches
+  const isFetchingRef = useRef(false);
+  const lastFetchTimeRef = useRef(0);
+
   useEffect(() => {
     if (user?.role === "admin" && !location.pathname.startsWith("/admin")) {
       console.log("🚫 Admin trying to access user area - redirecting");
@@ -43,9 +47,25 @@ export default function Header() {
 
   const [unreadCount, setUnreadCount] = useState(0);
 
-  /* ================= FETCH HEADER COUNT ================= */
+  /* ================= FETCH HEADER COUNT WITH DEDUPLICATION ================= */
   const fetchUnreadCount = async () => {
     if (!user) return;
+
+    // ✅ Prevent multiple simultaneous fetches
+    if (isFetchingRef.current) {
+      console.log("⏳ [HEADER] Already fetching, skipping...");
+      return;
+    }
+
+    // ✅ Debounce: Don't fetch more than once per 500ms
+    const now = Date.now();
+    if (now - lastFetchTimeRef.current < 500) {
+      console.log("⏳ [HEADER] Too soon, debouncing...");
+      return;
+    }
+
+    isFetchingRef.current = true;
+    lastFetchTimeRef.current = now;
 
     try {
       const res = await fetch(
@@ -58,34 +78,106 @@ export default function Header() {
       );
 
       const data = await res.json();
-      setUnreadCount(data.count);
+      const count = data.count || 0;
+
+      setUnreadCount(count);
+      console.log("📊 [HEADER] Unread count updated:", count);
     } catch (err) {
       console.error("Header unread fetch failed");
+    } finally {
+      isFetchingRef.current = false;
     }
   };
 
   /* ================= INITIAL LOAD ================= */
   useEffect(() => {
     if (!user?._id) return;
+
     fetchUnreadCount();
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+    socket.emit("registerUser", user._id);
   }, [user]);
 
-  /* ================= SOCKET LISTENER ================= */
+  /* ================= SOCKET LISTENER - DEBOUNCED ================= */
   useEffect(() => {
     if (!user?._id) return;
 
-    socket.emit("registerUser", user._id);
+    // ✅ Debounced refresh
+    let refreshTimeout;
+    const debouncedRefresh = () => {
+      clearTimeout(refreshTimeout);
+      refreshTimeout = setTimeout(() => {
+        fetchUnreadCount();
+      }, 300);
+    };
 
-    socket.on("newNotification", () => {
-      fetchUnreadCount();
-    });
+    const onNewNotification = (data) => {
+      console.log("🔔 [HEADER] New notification:", data);
+      debouncedRefresh();
+    };
 
-    return () => socket.off("newNotification");
+    const onChatUpdated = (data) => {
+      console.log("💬 [HEADER] Chat updated:", data);
+      debouncedRefresh();
+    };
+
+    const onReceiveMessage = (msg) => {
+      console.log("📩 [HEADER] Message received:", msg);
+      if (msg.sender !== user._id) {
+        debouncedRefresh();
+      }
+    };
+
+    socket.on("newNotification", onNewNotification);
+    socket.on("chatUpdated", onChatUpdated);
+    socket.on("receiveMessage", onReceiveMessage);
+
+    return () => {
+      clearTimeout(refreshTimeout);
+      socket.off("newNotification", onNewNotification);
+      socket.off("chatUpdated", onChatUpdated);
+      socket.off("receiveMessage", onReceiveMessage);
+    };
   }, [user]);
+
+  /* ================= REFRESH ON VISIBILITY CHANGE ================= */
+  useEffect(() => {
+    if (!user) return;
+
+    // ✅ Refresh count when user returns to tab
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log("👁️ [HEADER] Tab visible, refreshing count...");
+        fetchUnreadCount();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user]);
+
+  /* ================= REFRESH ON ROUTE CHANGE ================= */
+  useEffect(() => {
+    // ✅ Refresh when navigating away from chat
+    if (!location.pathname.startsWith('/chat') && user) {
+      console.log("🔄 [HEADER] Route changed, refreshing count...");
+      fetchUnreadCount();
+    }
+  }, [location.pathname, user]);
 
   /* ================= CLEAR WHEN OPEN CHAT ================= */
   useEffect(() => {
-    const clear = () => fetchUnreadCount();
+    const clear = () => {
+      console.log("🔄 [HEADER] Clearing notification (chat opened)");
+      fetchUnreadCount();
+    };
+
     window.addEventListener("clearHeaderNotification", clear);
     return () =>
       window.removeEventListener("clearHeaderNotification", clear);
@@ -142,7 +234,7 @@ export default function Header() {
               <FiHeart size={20} />
             </button>
 
-            {/* Chat */}
+            {/* CHAT - PERSISTENT NOTIFICATION */}
             <button
               onClick={() => {
                 if (!user) {
@@ -155,8 +247,9 @@ export default function Header() {
             >
               <FiMessageCircle size={20} />
 
+              {/* ✅ NOTIFICATION BADGE - PERSISTS UNTIL MESSAGES READ */}
               {user && unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 text-[10px] bg-red-500 text-white rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 text-[10px] bg-red-500 text-white rounded-full flex items-center justify-center font-medium">
                   {unreadCount}
                 </span>
               )}
