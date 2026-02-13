@@ -12,8 +12,9 @@ export default function Wishlist() {
 
     const fetchWishlist = async () => {
       try {
+        // ✅ FIXED: Added /api prefix
         const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/users/wishlist`,
+          `${import.meta.env.VITE_API_URL}/api/users/wishlist`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -21,12 +22,17 @@ export default function Wishlist() {
           }
         );
 
+        if (!res.ok) {
+          throw new Error("Failed to load wishlist");
+        }
+
         const data = await res.json();
         setWishlistItems(data);
 
         // 🔑 keep global wishlist in sync
         setWishlist(data.map(item => item._id));
-      } catch {
+      } catch (err) {
+        console.error("Wishlist fetch error:", err);
         toast.error("Failed to load wishlist");
       }
     };
@@ -43,13 +49,13 @@ export default function Wishlist() {
           Wishlist
         </h1>
         <p className="mt-3 text-[12px] text-[#6B7280] dark:text-gray-400">
-          Vehicles you’ve saved to revisit later.
+          Vehicles you've saved to revisit later.
         </p>
 
         {/* EMPTY STATE */}
         {wishlistItems.length === 0 && (
           <p className="mt-10 text-gray-500">
-            You haven’t added any vehicles yet.
+            You haven't added any vehicles yet.
           </p>
         )}
 

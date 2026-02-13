@@ -1,12 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import {
-  FiSend,
-  FiArrowLeft,
-  FiCheck,
-  FiImage,
-  FiX,
-} from "react-icons/fi";
+import { FiSend, FiArrowLeft, FiCheck, FiImage, FiX } from "react-icons/fi";
 import socket from "../socket/socket";
 
 export default function Chat() {
@@ -95,10 +89,11 @@ export default function Chat() {
         }))
       );
 
-      requestAnimationFrame(() => {
+      // ✅ INSTANT SCROLL ON LOAD
+      setTimeout(() => {
         bottomRef.current?.scrollIntoView({ behavior: "auto" });
         firstLoadRef.current = false;
-      });
+      }, 0);
 
       // Mark as read immediately
       await fetch(`${import.meta.env.VITE_API_URL}/api/chats/read/${chatId}`, {
@@ -120,6 +115,7 @@ export default function Chat() {
     const onReceive = (msg) => {
       if (msg.sender === currentUserId) return;
 
+      // ✅ OPTIMISTIC UPDATE - ADD INSTANTLY
       setMessages((prev) => [
         ...prev,
         {
@@ -139,7 +135,6 @@ export default function Chat() {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       }).then(() => {
-        // Notify sender that message was seen
         socket.emit("markSeen", { chatId, messageId: msg._id });
       });
     };
@@ -181,12 +176,15 @@ export default function Chat() {
     if (firstLoadRef.current) return;
 
     if (isAtBottomRef.current) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      // ✅ USE RAF FOR SMOOTH SCROLL
+      requestAnimationFrame(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      });
     }
   }, [messages]);
 
   /* ================= SEND TEXT MESSAGE ================= */
-  const sendMessage = async () => {
+  const sendMessage = useCallback(async () => {
     if (!message.trim() || !chatId) return;
 
     const tempId = `temp-${Date.now()}`;
@@ -204,9 +202,11 @@ export default function Chat() {
       seen: false,
     };
 
+    // ✅ OPTIMISTIC UPDATE - ADD INSTANTLY
     setMessages((prev) => [...prev, temp]);
     setMessage("");
 
+    // ✅ SEND TO BACKEND
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/messages`, {
       method: "POST",
       headers: {
@@ -233,7 +233,7 @@ export default function Chat() {
       sender: currentUserId,
       receiverId: sellerId,
     });
-  };
+  }, [message, chatId, currentUserId, sellerId]);
 
   /* ================= HANDLE IMAGE SELECTION ================= */
   const handleImageSelect = (e) => {
@@ -275,6 +275,7 @@ export default function Chat() {
       seen: false,
     };
 
+    // ✅ OPTIMISTIC UPDATE
     setMessages((prev) => [...prev, temp]);
     setPreviewImage(null);
 

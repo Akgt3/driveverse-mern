@@ -96,11 +96,17 @@ export default function MyAds() {
               {/* IMAGE */}
               <div className="relative">
                 <img
-                  src={car.images[0].startsWith('http')
-                    ? car.images[0]
-                    : `${import.meta.env.VITE_API_URL}${car.images[0]}`}
+                  src={
+                    car.images &&
+                      car.images.length > 0 &&
+                      car.images[0].startsWith("http")
+                      ? car.images[0]
+                      : car.images && car.images.length > 0
+                        ? `${import.meta.env.VITE_API_URL}${car.images[0]}`
+                        : "https://via.placeholder.com/400x300?text=No+Image"
+                  }
                   className="w-full h-[190px] object-cover"
-                  alt={car.title}
+                  alt="car"
                 />
 
                 {car.featured && (

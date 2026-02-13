@@ -112,6 +112,26 @@ export default function AdminListings() {
     }
   };
 
+  // ✅ SAFE IMAGE URL FUNCTION
+  const getImageUrl = (car) => {
+    if (!car.images || !Array.isArray(car.images) || car.images.length === 0) {
+      return null; // Will show fallback below
+    }
+
+    const firstImage = car.images[0];
+    if (!firstImage || typeof firstImage !== 'string') {
+      return null;
+    }
+
+    // Cloudinary or external URL
+    if (firstImage.startsWith('http')) {
+      return firstImage;
+    }
+
+    // Local uploaded image
+    return `${import.meta.env.VITE_API_URL}${firstImage}`;
+  };
+
   return (
     <AdminLayout>
       <div className="pt-12 px-6 pb-12 max-w-[1400px] mx-auto">
@@ -143,125 +163,152 @@ export default function AdminListings() {
                 </thead>
 
                 <tbody>
-                  {listings.map((car) => (
-                    <tr
-                      key={car._id}
-                      className="border-t border-gray-200 dark:border-[#333333]"
-                    >
-                      {/* CAR */}
-                      <td className="p-4 flex items-center gap-3">
-                        <img
-                          src={car.images[0].startsWith('http')
-                            ? car.images[0]  // Cloudinary URL
-                            : `${import.meta.env.VITE_API_URL}${car.images[0]}`}
-                          className="w-16 h-11 rounded object-cover"
-                          alt={car.title}
-                        />
-                        <div>
+                  {listings.map((car) => {
+                    const imageUrl = getImageUrl(car);
+
+                    return (
+                      <tr
+                        key={car._id}
+                        className="border-t border-gray-200 dark:border-[#333333]"
+                      >
+                        {/* CAR - FIXED IMAGE HANDLING */}
+                        <td className="p-4 flex items-center gap-3">
+                          {imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              className="w-16 h-11 rounded object-cover"
+                              alt={car.title || "Car"}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextElementSibling.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div
+                            className="w-16 h-11 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs text-gray-500"
+                            style={{ display: imageUrl ? 'none' : 'flex' }}
+                          >
+                            No Image
+                          </div>
+                          <div>
+                            <p className="font-medium text-black dark:text-white">
+                              {car.title || "Untitled"}
+                            </p>
+                            <p className="text-xs text-gray-500">{car.price || "N/A"}</p>
+                          </div>
+                        </td>
+
+                        {/* SELLER */}
+                        <td>
                           <p className="font-medium text-black dark:text-white">
-                            {car.title}
+                            {car.seller?.name || "Unknown"}
                           </p>
-                          <p className="text-xs text-gray-500">{car.price}</p>
-                        </div>
-                      </td >
+                        </td>
 
-                      {/* SELLER */}
-                      <td  >
-                        <p className="font-medium text-black dark:text-white">
-                          {car.seller?.name || "Unknown"}
-                        </p>
-                      </td >
+                        {/* LOCATION */}
+                        <td className="text-gray-600 dark:text-gray-400">
+                          {car.location || "N/A"}
+                        </td>
 
-                      {/* LOCATION */}
-                      < td className="text-gray-600 dark:text-gray-400" >
-                        {car.location}
-                      </ td>
+                        {/* STATUS */}
+                        <td>
+                          <div className="flex flex-col gap-1">
+                            {car.verified && (
+                              <span className="inline-flex items-center gap-1 text-xs px-2 py-[2px] rounded bg-blue-500 text-white w-fit">
+                                <FiCheckCircle size={12} />
+                                Verified
+                              </span>
+                            )}
+                            {car.featured && (
+                              <span className="inline-flex items-center gap-1 text-xs px-2 py-[2px] rounded bg-yellow-400 text-black w-fit">
+                                <FiStar size={12} />
+                                Featured
+                              </span>
+                            )}
+                            {!car.verified && !car.featured && (
+                              <span className="text-gray-400 text-xs">—</span>
+                            )}
+                          </div>
+                        </td>
 
-                      {/* STATUS */}
-                      <td td >
-                        <div className="flex flex-col gap-1">
-                          {car.verified && (
-                            <span className="inline-flex items-center gap-1 text-xs px-2 py-[2px] rounded bg-blue-500 text-white w-fit">
-                              <FiCheckCircle size={12} />
-                              Verified
-                            </span>
-                          )}
-                          {car.featured && (
-                            <span className="inline-flex items-center gap-1 text-xs px-2 py-[2px] rounded bg-yellow-400 text-black w-fit">
-                              <FiStar size={12} />
-                              Featured
-                            </span>
-                          )}
-                          {!car.verified && !car.featured && (
-                            <span className="text-gray-400 text-xs">—</span>
-                          )}
-                        </div>
-                      </td >
+                        {/* ACTIONS */}
+                        <td className="p-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => toggleFeatured(car._id)}
+                              className={`p-2 rounded-md transition ${car.featured
+                                ? "bg-yellow-100 text-yellow-600"
+                                : "text-yellow-500 hover:bg-yellow-50"
+                                } dark:hover:bg-[#1A1A1A]`}
+                              title={
+                                car.featured ? "Remove featured" : "Make featured"
+                              }
+                            >
+                              <FiStar />
+                            </button>
 
-                      {/* ACTIONS */}
-                      <td td className="p-4" >
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => toggleFeatured(car._id)}
-                            className={`p-2 rounded-md transition ${car.featured
-                              ? "bg-yellow-100 text-yellow-600"
-                              : "text-yellow-500 hover:bg-yellow-50"
-                              } dark:hover:bg-[#1A1A1A]`}
-                            title={
-                              car.featured ? "Remove featured" : "Make featured"
-                            }
-                          >
-                            <FiStar />
-                          </button>
+                            <button
+                              onClick={() => toggleVerified(car._id)}
+                              className={`p-2 rounded-md transition ${car.verified
+                                ? "bg-blue-100 text-blue-600"
+                                : "text-blue-500 hover:bg-blue-50"
+                                } dark:hover:bg-[#1A1A1A]`}
+                              title={car.verified ? "Unverify" : "Verify"}
+                            >
+                              <FiCheckCircle />
+                            </button>
 
-                          <button
-                            onClick={() => toggleVerified(car._id)}
-                            className={`p-2 rounded-md transition ${car.verified
-                              ? "bg-blue-100 text-blue-600"
-                              : "text-blue-500 hover:bg-blue-50"
-                              } dark:hover:bg-[#1A1A1A]`}
-                            title={car.verified ? "Unverify" : "Verify"}
-                          >
-                            <FiCheckCircle />
-                          </button>
-
-                          <button
-                            onClick={() => deleteListing(car._id)}
-                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-[#1A1A1A] rounded-md transition"
-                            title="Delete listing"
-                          >
-                            <FiTrash2 />
-                          </button>
-                        </div>
-                      </td >
-                    </tr >
-                  ))
-                  }
-                </tbody >
-              </table >
-            </div >
+                            <button
+                              onClick={() => deleteListing(car._id)}
+                              className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-[#1A1A1A] rounded-md transition"
+                              title="Delete listing"
+                            >
+                              <FiTrash2 />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
             {/* ================= MOBILE CARDS ================= */}
-            < div className="md:hidden space-y-4" >
-              {
-                listings.map((car) => (
+            <div className="md:hidden space-y-4">
+              {listings.map((car) => {
+                const imageUrl = getImageUrl(car);
+
+                return (
                   <div
                     key={car._id}
                     className="bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#333333] rounded-xl p-4"
                   >
                     <div className="flex gap-3">
-                      <img
-                        src={`http://localhost:5000${car.images[0]}`}
-                        className="w-24 h-16 rounded object-cover"
-                        alt={car.title}
-                      />
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          className="w-24 h-16 rounded object-cover"
+                          alt={car.title || "Car"}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextElementSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className="w-24 h-16 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs text-gray-500"
+                        style={{ display: imageUrl ? 'none' : 'flex' }}
+                      >
+                        No Image
+                      </div>
 
                       <div className="flex-1">
                         <p className="font-medium text-black dark:text-white">
-                          {car.title}
+                          {car.title || "Untitled"}
                         </p>
 
-                        <p className="text-sm text-gray-500">{car.price}</p>
+                        <p className="text-sm text-gray-500">{car.price || "N/A"}</p>
 
                         <p className="text-xs text-gray-600 dark:text-gray-400">
                           Seller:{" "}
@@ -270,7 +317,7 @@ export default function AdminListings() {
                           </span>
                         </p>
 
-                        <p className="text-xs text-gray-500">{car.location}</p>
+                        <p className="text-xs text-gray-500">{car.location || "N/A"}</p>
 
                         <div className="mt-2 flex gap-2 flex-wrap">
                           {car.verified && (
@@ -318,12 +365,12 @@ export default function AdminListings() {
                       </button>
                     </div>
                   </div>
-                ))
-              }
-            </div >
+                );
+              })}
+            </div>
           </>
         )}
-      </div >
-    </AdminLayout >
+      </div>
+    </AdminLayout>
   );
 }

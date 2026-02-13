@@ -9,10 +9,9 @@ import {
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { useTheme } from "../context/ThemeContext";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ProfileMenu from "../components/ProfileMenu";
-import { useNavigate } from "react-router-dom";
 
 const socket = io(import.meta.env.VITE_SOCKET_URL, {
   transports: ["websocket"],
@@ -21,8 +20,18 @@ const socket = io(import.meta.env.VITE_SOCKET_URL, {
 export default function Header() {
   const [open, setOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // ✅ BLOCK HEADER FOR ADMIN
+  useEffect(() => {
+    if (user?.role === "admin" && !location.pathname.startsWith("/admin")) {
+      console.log("🚫 Admin trying to access user area - redirecting");
+      navigate("/admin", { replace: true });
+    }
+  }, [user, location, navigate]);
+
   const navLinks = [
     { label: "Buy", path: "/buy" },
     { label: "Sell", path: "/sell" },
@@ -39,7 +48,6 @@ export default function Header() {
     if (!user) return;
 
     try {
-      // ✅ FIXED: NO SPACES IN URL
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/chats/unread-count`,
         {

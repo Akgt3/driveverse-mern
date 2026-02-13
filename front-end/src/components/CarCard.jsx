@@ -44,6 +44,31 @@ export default function CarCard({ car }) {
     }
   };
 
+  // ✅ SAFE IMAGE URL BUILDER - NO EXTERNAL FALLBACKS
+  const getImageUrl = () => {
+    // Check if car has images array
+    if (!car.images || !Array.isArray(car.images) || car.images.length === 0) {
+      return null; // Will show fallback div below
+    }
+
+    const firstImage = car.images[0];
+
+    // Check if image exists and is a string
+    if (!firstImage || typeof firstImage !== 'string') {
+      return null;
+    }
+
+    // Cloudinary or external URL
+    if (firstImage.startsWith('http')) {
+      return firstImage;
+    }
+
+    // Local/uploaded image
+    return `${import.meta.env.VITE_API_URL}${firstImage}`;
+  };
+
+  const imageUrl = getImageUrl();
+
   return (
     <div
       className="
@@ -56,16 +81,31 @@ export default function CarCard({ car }) {
     >
       {/* IMAGE */}
       <div className="relative">
-        <img
-          src={car.images[0].startsWith('http')
-            ? car.images[0]  // Cloudinary URL
-            : `${import.meta.env.VITE_API_URL}${car.images[0]}`}
-          alt={car.title}
-          className="w-full h-[190px] object-cover"
-        />
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={car.title || "Car image"}
+            className="w-full h-[190px] object-cover"
+            onError={(e) => {
+              // Hide broken image, show fallback
+              e.target.style.display = 'none';
+              e.target.nextElementSibling.style.display = 'flex';
+            }}
+          />
+        ) : null}
+
+        {/* ✅ FALLBACK DIV - NO EXTERNAL URL */}
+        <div
+          className="w-full h-[190px] bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400"
+          style={{ display: imageUrl ? 'none' : 'flex' }}
+        >
+          <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
 
         {/* WISHLIST — hide for seller */}
-        {user && user._id !== car.seller._id && (
+        {user && car.seller && user._id !== car.seller._id && (
           <button
             onClick={handleWishlist}
             className={`
@@ -105,18 +145,18 @@ export default function CarCard({ car }) {
       {/* CONTENT */}
       <div className="p-4">
         <div className="text-[18px] font-semibold text-black dark:text-white">
-          {car.price}
+          {car.price || "Price not available"}
         </div>
 
         <div className="mt-1 text-[15px] text-[#1F2933] dark:text-neutral-100 line-clamp-2">
-          {car.title}
+          {car.title || "Untitled listing"}
         </div>
         <div className="mt-2 flex items-center gap-2">
           <SellerTypeBadge type={car.sellerType} />
         </div>
 
         <div className="mt-1 text-[13px] text-[#6B7280] dark:text-neutral-400">
-          {car.year} · {car.km} km
+          {car.year || "N/A"} · {car.km || "N/A"} km
         </div>
 
         {/* VERIFIED BADGE */}
@@ -128,13 +168,15 @@ export default function CarCard({ car }) {
         )}
 
         <div className="mt-3 flex justify-between text-[12px] text-[#6B7280] dark:text-neutral-400">
-          <span>{car.location}</span>
+          <span>{car.location || "Location not specified"}</span>
           <span>
-            {new Date(car.createdAt).toLocaleDateString("en-IN", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
+            {car.createdAt
+              ? new Date(car.createdAt).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+              : "Date unknown"}
           </span>
         </div>
 
