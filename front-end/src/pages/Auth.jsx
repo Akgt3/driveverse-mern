@@ -6,6 +6,8 @@ import { loginRequest, registerRequest } from "../services/authService";
 import toast from "react-hot-toast";
 import { GoogleLogin } from "@react-oauth/google";
 import { useEffect } from "react";
+import { useGoogleLogin } from "@react-oauth/google";
+
 
 export default function Auth() {
   const [mode, setMode] = useState("login"); // login | register
@@ -20,10 +22,46 @@ export default function Auth() {
   const { user } = useAuth();
 
   useEffect(() => {
+    if (mode === "login" && window.google) {
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: handleGoogleResponse,
+        auto_select: false,
+      });
+    }
+  }, [mode]);
+
+  useEffect(() => {
     if (user) {
       navigate("/", { replace: true });
     }
   }, [user, navigate]);
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/auth/google`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              token: tokenResponse.access_token,
+            }),
+          }
+        );
+
+        const data = await res.json();
+        login(data.user, data.token);
+        toast.success("Signed in with Google");
+        navigate("/", { replace: true });
+      } catch {
+        toast.error("Google login failed");
+      }
+    },
+    onError: () => toast.error("Google login failed"),
+  });
+
 
   const handleSubmit = async () => {
     try {
@@ -52,6 +90,30 @@ export default function Auth() {
       setError(message);
     }
   };
+
+
+  const handleGoogleResponse = async (response) => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/google`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: response.credential, // 🔥 ID TOKEN
+          }),
+        }
+      );
+
+      const data = await res.json();
+      login(data.user, data.token);
+      toast.success("Signed in with Google");
+      navigate("/", { replace: true });
+    } catch {
+      toast.error("Google login failed");
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-white dark:bg-black px-6">
@@ -87,36 +149,26 @@ export default function Auth() {
           {mode === "login" && (
             <>
               <div className="mt-6">
-                <GoogleLogin
-                  onSuccess={async (credentialResponse) => {
-                    try {
-                      const res = await fetch(
-                        `${import.meta.env.VITE_API_URL}/api/auth/google`,
-                        {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            token: credentialResponse.credential,
-                          }),
-                        }
-                      );
-
-                      const data = await res.json();
-                      login(data.user, data.token);
-                      toast.success("Signed in with Google");
-                      navigate("/", { replace: true });
-                    } catch {
-                      toast.error("Google login failed");
-                    }
-                  }}
-                  onError={() => toast.error("Google login failed")}
-                  useOneTap={false}            // 🔥 disable auto UI
-                  auto_select={false}         // 🔥 disable auto account
-                  prompt="select_account"     // 🔥 force account chooser
-                  theme="outline"
-                  size="large"
-                  shape="rectangular"
-                />
+                <button
+                  onClick={() => window.google.accounts.id.prompt()}
+                  className="
+    w-full h-[44px]
+    border border-gray-300 dark:border-gray-700
+    rounded-md
+    flex items-center justify-center gap-3
+    hover:bg-gray-50 dark:hover:bg-gray-900
+    transition
+  "
+                >
+                  <img
+                    src="https://www.svgrepo.com/show/475656/google-color.svg"
+                    alt="Google"
+                    className="w-5 h-5"
+                  />
+                  <span className="text-sm font-medium text-black dark:text-white">
+                    Sign in with Google
+                  </span>
+                </button>
               </div>
 
 
