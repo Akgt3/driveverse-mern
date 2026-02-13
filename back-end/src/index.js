@@ -1,11 +1,13 @@
 import dotenv from "dotenv";
 
 // ✅ STEP 1: Load .env FIRST (before any other imports that need env vars)
-const result = dotenv.config();
 
-if (result.error) {
-  console.error("❌ Failed to load .env file:", result.error);
-  process.exit(1);
+// Only load .env locally
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+  console.log("✅ Local .env loaded");
+} else {
+  console.log("🚀 Running in production mode");
 }
 
 console.log("✅ .env file loaded");
