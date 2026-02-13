@@ -24,28 +24,40 @@ export const initSocket = (server) => {
       console.log(`💬 Joined chat room: ${chatId}`);
     });
 
-    // 📤 Send message (INSTANT)
+    // 📤 Send message (INSTANT - NO DELAYS)
     socket.on("sendMessage", (data) => {
-      const { chatId, receiverId, ...messageData } = data;
+      const { chatId, receiverId, sender, ...messageData } = data;
 
-      if (!chatId || !receiverId) return;
+      if (!chatId || !receiverId || !sender) return;
 
-      console.log(`📤 Message sent in chat ${chatId} to user ${receiverId}`);
+      console.log(`📤 Message: ${sender} → ${receiverId} in chat ${chatId}`);
 
-      // ✅ INSTANT: Send to chat room
-      io.to(chatId.toString()).emit("receiveMessage", messageData);
+      // ✅ SEND TO CHAT ROOM (BOTH SEE INSTANTLY)
+      io.to(chatId.toString()).emit("receiveMessage", {
+        ...messageData,
+        sender,
+      });
 
-      // ✅ INSTANT: Notify receiver's header
-      io.to(receiverId.toString()).emit("newNotification");
+      // ✅ CRITICAL: Only notify RECEIVER's header (NOT sender's)
+      if (receiverId.toString() !== sender.toString()) {
+        io.to(receiverId.toString()).emit("newNotification");
+        console.log(`📬 Header notification sent to ${receiverId}`);
+      } else {
+        console.log(`⛔ Skipped self-notification for ${sender}`);
+      }
+
+      // ✅ UPDATE CHATINBOX FOR BOTH USERS (INSTANT)
+      io.to(sender.toString()).emit("chatListUpdate");
+      io.to(receiverId.toString()).emit("chatListUpdate");
     });
 
     // ✅ Mark message as seen (INSTANT DOUBLE TICK)
-    socket.on("markSeen", ({ chatId, messageId }) => {
+    socket.on("markSeen", ({ chatId, messageId, seenBy }) => {
       if (!chatId || !messageId) return;
 
-      console.log(`✅ Message ${messageId} marked as seen in chat ${chatId}`);
+      console.log(`✅ Message ${messageId} seen by ${seenBy} in chat ${chatId}`);
 
-      // Emit to chat room so sender sees double tick instantly
+      // ✅ INSTANT DOUBLE TICK TO CHAT ROOM
       io.to(chatId.toString()).emit("messageSeen", { messageId });
     });
 

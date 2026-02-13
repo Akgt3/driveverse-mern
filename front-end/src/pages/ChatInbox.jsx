@@ -31,18 +31,28 @@ export default function ChatInbox() {
     socket.emit("registerUser", currentUserId);
   }, [currentUserId]);
 
-  /* ================= REALTIME UPDATE ================= */
+  /* ================= REAL-TIME UPDATES (NO REFRESH NEEDED) ================= */
   useEffect(() => {
+    if (!currentUserId) return;
+
+    // ✅ UPDATE ON NEW NOTIFICATION
     const onNotify = () => {
       fetchChats();
     };
 
+    // ✅ UPDATE ON CHAT LIST CHANGE (INSTANT)
+    const onChatUpdate = () => {
+      fetchChats();
+    };
+
     socket.on("newNotification", onNotify);
+    socket.on("chatListUpdate", onChatUpdate);
 
     return () => {
       socket.off("newNotification", onNotify);
+      socket.off("chatListUpdate", onChatUpdate);
     };
-  }, []);
+  }, [currentUserId]);
 
   /* ================= DELETE SINGLE CHAT ================= */
   const deleteChat = async (chatId, e) => {
@@ -190,6 +200,9 @@ export default function ChatInbox() {
 
             const isSelected = selected.includes(chat._id);
 
+            // ✅ ACCURATE DOUBLE TICK (unreadCount = 0 means seen)
+            const isSeen = chat.unreadCount === 0;
+
             return (
               <Link
                 key={chat._id}
@@ -243,11 +256,11 @@ export default function ChatInbox() {
                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
                       {chat.lastMessage}
 
-                      {/* TICKS */}
+                      {/* ✅ ACCURATE DOUBLE TICK */}
                       {chat.lastMessageSender === currentUserId && (
-                        <span className="flex items-center ml-1 pt-1 text-gray-500">
+                        <span className="flex items-center ml-1 text-gray-500">
                           <FiCheck size={13} />
-                          {chat.unreadCount === 0 && (
+                          {isSeen && (
                             <FiCheck size={13} className="-ml-2" />
                           )}
                         </span>

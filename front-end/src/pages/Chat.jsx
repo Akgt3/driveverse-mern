@@ -89,13 +89,13 @@ export default function Chat() {
         }))
       );
 
-      // ✅ INSTANT SCROLL ON LOAD
+      // ✅ INSTANT SCROLL
       setTimeout(() => {
         bottomRef.current?.scrollIntoView({ behavior: "auto" });
         firstLoadRef.current = false;
       }, 0);
 
-      // Mark as read immediately
+      // ✅ MARK AS READ INSTANTLY
       await fetch(`${import.meta.env.VITE_API_URL}/api/chats/read/${chatId}`, {
         method: "PUT",
         headers: {
@@ -113,9 +113,10 @@ export default function Chat() {
     if (!chatId) return;
 
     const onReceive = (msg) => {
+      // ✅ IGNORE OWN MESSAGES (already added optimistically)
       if (msg.sender === currentUserId) return;
 
-      // ✅ OPTIMISTIC UPDATE - ADD INSTANTLY
+      // ✅ ADD INSTANTLY
       setMessages((prev) => [
         ...prev,
         {
@@ -128,14 +129,19 @@ export default function Chat() {
         },
       ]);
 
-      // ✅ MARK AS READ INSTANTLY
+      // ✅ MARK AS READ + SEND DOUBLE TICK INSTANTLY
       fetch(`${import.meta.env.VITE_API_URL}/api/chats/read/${chatId}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       }).then(() => {
-        socket.emit("markSeen", { chatId, messageId: msg._id });
+        // ✅ INSTANT DOUBLE TICK TO SENDER
+        socket.emit("markSeen", {
+          chatId,
+          messageId: msg._id,
+          seenBy: currentUserId
+        });
       });
     };
 
@@ -143,11 +149,12 @@ export default function Chat() {
     return () => socket.off("receiveMessage", onReceive);
   }, [chatId, currentUserId]);
 
-  /* ================= SOCKET MESSAGE SEEN ================= */
+  /* ================= SOCKET MESSAGE SEEN (INSTANT DOUBLE TICK) ================= */
   useEffect(() => {
     if (!chatId) return;
 
     const onSeen = ({ messageId }) => {
+      // ✅ UPDATE INSTANTLY (NO DELAY)
       setMessages((prev) =>
         prev.map((m) => (m._id === messageId ? { ...m, seen: true } : m))
       );
@@ -176,7 +183,6 @@ export default function Chat() {
     if (firstLoadRef.current) return;
 
     if (isAtBottomRef.current) {
-      // ✅ USE RAF FOR SMOOTH SCROLL
       requestAnimationFrame(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
       });
@@ -202,7 +208,7 @@ export default function Chat() {
       seen: false,
     };
 
-    // ✅ OPTIMISTIC UPDATE - ADD INSTANTLY
+    // ✅ ADD INSTANTLY
     setMessages((prev) => [...prev, temp]);
     setMessage("");
 
@@ -222,11 +228,12 @@ export default function Chat() {
 
     const saved = await res.json();
 
-    // Replace temp message with real one
+    // ✅ REPLACE TEMP WITH REAL ID
     setMessages((prev) =>
       prev.map((m) => (m._id === tempId ? { ...m, _id: saved._id } : m))
     );
 
+    // ✅ EMIT TO SOCKET
     socket.emit("sendMessage", {
       ...saved,
       chatId,
@@ -275,7 +282,7 @@ export default function Chat() {
       seen: false,
     };
 
-    // ✅ OPTIMISTIC UPDATE
+    // ✅ ADD INSTANTLY
     setMessages((prev) => [...prev, temp]);
     setPreviewImage(null);
 
@@ -290,7 +297,7 @@ export default function Chat() {
 
       const saved = await res.json();
 
-      // Replace temp with real image URL
+      // ✅ REPLACE WITH CLOUDINARY URL
       setMessages((prev) =>
         prev.map((m) =>
           m._id === tempId
@@ -303,6 +310,7 @@ export default function Chat() {
         )
       );
 
+      // ✅ EMIT TO SOCKET
       socket.emit("sendMessage", {
         ...saved,
         chatId,
@@ -311,7 +319,6 @@ export default function Chat() {
       });
     } catch (err) {
       console.error("Image upload failed:", err);
-      // Remove failed message
       setMessages((prev) => prev.filter((m) => m._id !== tempId));
     } finally {
       setUploading(false);
@@ -413,7 +420,6 @@ export default function Chat() {
 
       {/* INPUT */}
       <div className="h-[56px] sm:h-[72px] px-3 sm:px-4 border-t border-gray-200 dark:border-neutral-800 flex items-center gap-2 sm:gap-3 bg-white dark:bg-[#141414]">
-        {/* IMAGE BUTTON */}
         <button
           onClick={() => fileInputRef.current?.click()}
           className="text-gray-600 dark:text-gray-300"
@@ -428,7 +434,6 @@ export default function Chat() {
           onChange={handleImageSelect}
         />
 
-        {/* INPUT */}
         <input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -437,7 +442,6 @@ export default function Chat() {
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
         />
 
-        {/* SEND */}
         <button
           onClick={sendMessage}
           className="flex items-center justify-center text-black dark:text-white"
@@ -464,7 +468,7 @@ function MessageBubble({ msg }) {
             src={
               msg.content.startsWith("data:")
                 ? msg.content
-                : msg.content.startsWith("https://")  // ✅ CORRECT
+                : msg.content.startsWith("https://")
                   ? msg.content
                   : msg.content.startsWith("http://")
                     ? msg.content.replace('http://', 'https://')
