@@ -19,3 +19,5 @@ If you are developing a production application, we recommend using TypeScript wi
 updated 1
 
 updated 2
+
+version 3
